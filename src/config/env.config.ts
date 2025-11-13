@@ -22,4 +22,7 @@ export const serverConfig = {
   MAX_FILE_SIZE_MB: (Number(process.env.MAX_FILE_SIZE_MB) || 5) * 1024 * 1024,
   ALLOWED_MIME_TYPES: (process.env.ALLOWED_MIME_TYPES || "").split(","),
   MAX_JSON_SIZE: `${Number(process.env.MAX_JSON_SIZE_MB) || 2}mb`,
+
+  // Salt rounds
+  BCRYPT_SALT_ROUNDS: Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
 };
