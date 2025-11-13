@@ -42,6 +42,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "nanoid": "^5.1.6",
+    "streamifier": "^0.1.1",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -50,6 +51,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.10.1",
+    "@types/streamifier": "^0.1.2",
     "prisma": "^6.19.0",
     "tsc-alias": "^1.8.16",
     "tsx": "^4.20.6",
