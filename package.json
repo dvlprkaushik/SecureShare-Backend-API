@@ -1,0 +1,58 @@
+{
+  "name": "fileshare_backend_api",
+  "version": "1.0.0",
+  "description": "A secure and scalable file-sharing backend API built with Express, TypeScript, Prisma, and Cloudinary. Supports file uploads, folder hierarchy, JWT auth, and shareable links with expiry.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc && tsc-alias",
+    "start": "node dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dvlprkaushik/SecureShare-Backend-API.git"
+  },
+  "keywords": [
+    "file-upload",
+    "cloudinary",
+    "express",
+    "typescript",
+    "prisma",
+    "backend-api",
+    "jwt-auth",
+    "secure-file-storage",
+    "rest-api",
+    "nodejs"
+  ],
+  "author": "Kaushik <dvlprkaushik>",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/dvlprkaushik/SecureShare-Backend-API/issues"
+  },
+  "homepage": "https://github.com/dvlprkaushik/SecureShare-Backend-API#readme",
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "bcryptjs": "^3.0.3",
+    "chalk": "^5.6.2",
+    "cloudinary": "^2.8.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "nanoid": "^5.1.6",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.10.1",
+    "prisma": "^6.19.0",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
