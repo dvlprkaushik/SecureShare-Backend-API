@@ -86,7 +86,11 @@ export const ERROR_CODES = {
     message: "Share link has expired",
     status: 410,
   },
-
+  NO_FILE: {
+    code: "NO_FILE",
+    message: "File is required",
+    status: 400,
+  },
   // ---------- DATABASE ----------
   DATABASE_ERROR: {
     code: "DATABASE_ERROR",
