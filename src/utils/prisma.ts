@@ -1,6 +1,7 @@
+import { serverConfig } from "@/config/env.config.js";
 import { PrismaClient } from "@prisma/client";
 
-const inDev = process.env.NODE_ENV === "development";
+const inDev = serverConfig.NODE_ENV;
 export const prisma = new PrismaClient(
   inDev
     ? {
