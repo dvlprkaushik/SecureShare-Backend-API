@@ -105,3 +105,33 @@ export const getFileById = async (
     next(error);
   }
 };
+
+export const deleteFile = async (
+  req: Request<{ fileId: string }>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const fileId = Number(req.params.fileId);
+    if (isNaN(fileId)) {
+      return next(new StorageError("VALIDATION_ERROR", "Invalid file id"));
+    }
+    const file = await file_service.findFileById(fileId);
+
+    if (!file) {
+      return next(new StorageError("FILE_NOT_FOUND"));
+    }
+
+    if (file.userid !== req.userId) {
+      return next(new StorageError("ACCESS_DENIED", "You do not own this file"));
+    }
+
+    await cloud_service.deleteFromCloudinary(file.cloudPublicId);
+
+    await file_service.deleteFileById(fileId);
+
+    return sendSuccess(res, "File deleted successfully", null, 203);
+  } catch (error) {
+    next(error);
+  }
+};
