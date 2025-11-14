@@ -165,3 +165,13 @@ export const validateFolderOwnership = async (
     throw new StorageError("DATABASE_ERROR", "Failed to validate folder");
   }
 };
+
+export const deleteFileById = async (fileId : number) =>{
+  try {
+    await prisma.fileMetaData.delete({
+      where : {id : fileId}
+    });
+  } catch (error) {
+    throw new StorageError("DATABASE_ERROR", "Failed to delete file from database");
+  }
+}
