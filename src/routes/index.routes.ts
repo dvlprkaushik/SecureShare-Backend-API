@@ -4,9 +4,10 @@ import { fileRouter } from "./v1/files.routes.js";
 
 const v1Routes = Router();
 
+// auth routes
 v1Routes.use("/auth", authRouter);
 
-// temp
-v1Routes.use("/file", fileRouter);
+// file routes
+v1Routes.use("/files", fileRouter);
 
 export { v1Routes };
