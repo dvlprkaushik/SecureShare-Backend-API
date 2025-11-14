@@ -74,7 +74,7 @@ export const getFiles = async (
 };
 
 export const getFileById = async (
-  req: Request<{ fileId: number }>,
+  req: Request<{ fileId: string }>,
   res: Response,
   next: NextFunction
 ) => {
