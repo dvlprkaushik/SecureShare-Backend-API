@@ -129,7 +129,7 @@ export const getUserFiles = async (
   }
 };
 
-export const findFileById = async (fileId: number): Promise<Files> => {
+export const findFileById = async (fileId: number) => {
   try {
     const record = await prisma.fileMetaData.findUnique({
       where: {
@@ -149,15 +149,7 @@ export const findFileById = async (fileId: number): Promise<Files> => {
     if (!record) {
       throw new StorageError("FILE_NOT_FOUND");
     }
-    return {
-      id: record.id,
-      filename: record.filename,
-      mimeType: record.mimeType,
-      sizeKB: record.sizeKB,
-      cloudUrl: record.cloudUrl,
-      uploadedAt: record.uploadedAt,
-      folderId: record.folderId,
-    };
+    return record;
   } catch (error) {
     if (error instanceof StorageError) throw error;
     throw new StorageError("DATABASE_ERROR", "Failed to fetch file");
@@ -169,7 +161,7 @@ export const validateFolderOwnership = async (
   userId: number
 ) => {
   try {
-    if (folderId === null ) return ;
+    if (folderId === null) return;
     const folder = await prisma.folder.findUnique({
       where: {
         id: folderId,
