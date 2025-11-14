@@ -8,5 +8,6 @@ const fileRouter = Router();
 fileRouter.post("/upload", authMiddleware, upload.single("file"),fileController.uploadFile);
 fileRouter.get("/", authMiddleware,fileController.getFiles);
 fileRouter.get("/:fileId", authMiddleware, fileController.getFileById);
+fileRouter.delete("/:fileId", authMiddleware, fileController.deleteFile);
 
 export { fileRouter };
