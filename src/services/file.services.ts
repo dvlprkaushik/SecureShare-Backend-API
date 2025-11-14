@@ -64,7 +64,7 @@ export interface FileFilters extends Pick<Metadata, "folderId" | "mimeType"> {
   limit?: number | null;
 }
 
-type Files = {
+export type Files = {
   id: number;
   filename: string;
   mimeType: string;
