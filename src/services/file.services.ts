@@ -99,15 +99,6 @@ export const getUserFiles = async (
     const [files, total] = await Promise.all([
       prisma.fileMetaData.findMany({
         where: fields,
-        select: {
-          id: true,
-          filename: true,
-          mimeType: true,
-          sizeKB: true,
-          cloudUrl: true,
-          uploadedAt: true,
-          folderId: true,
-        },
         skip,
         take,
         orderBy: { uploadedAt: "desc" },
@@ -132,18 +123,7 @@ export const getUserFiles = async (
 export const findFileById = async (fileId: number) => {
   try {
     const record = await prisma.fileMetaData.findUnique({
-      where: {
-        id: fileId,
-      },
-      select: {
-        id: true,
-        filename: true,
-        mimeType: true,
-        sizeKB: true,
-        cloudUrl: true,
-        uploadedAt: true,
-        folderId: true,
-      },
+      where: { id: fileId },
     });
 
     if (!record) {
