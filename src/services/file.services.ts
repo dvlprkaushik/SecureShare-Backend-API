@@ -49,7 +49,10 @@ export const createFileMetadata = async (data: Metadata) => {
   }
 };
 
-export interface FileFilters extends Pick<Metadata, "folderId" | "mimeType"> {
+// All fields are optional because query parameters in GET requests are not guaranteed to be present
+export interface FileFilters {
+  folderId?: number | null;
+  mimeType?: string;
   page?: number | null;
   limit?: number | null;
 }
