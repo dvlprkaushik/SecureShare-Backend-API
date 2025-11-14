@@ -13,7 +13,7 @@ export interface Metadata {
   shareExpiry?: Date | null;
 }
 
-export const createFileMetadata = async (data: Metadata): Promise<Metadata> => {
+export const createFileMetadata = async (data: Metadata) => {
   try {
     const {
       cloudUrl,
@@ -40,17 +40,7 @@ export const createFileMetadata = async (data: Metadata): Promise<Metadata> => {
       },
     });
 
-    return {
-      filename: record.filename,
-      mimeType: record.mimeType,
-      sizeKB: record.sizeKB,
-      cloudUrl: record.cloudUrl,
-      cloudPublicId: record.cloudPublicId,
-      userId: record.userid,
-      folderId: record.folderId,
-      shareToken: record.shareToken,
-      shareExpiry: record.shareExpiry,
-    };
+    return record;
   } catch (error) {
     throw new StorageError(
       "DATABASE_ERROR",
