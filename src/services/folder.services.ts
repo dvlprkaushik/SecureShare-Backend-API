@@ -40,3 +40,36 @@ export const findFolderById = async (folderId: number) => {
     throw new StorageError("DATABASE_ERROR", "Failed to find folder");
   }
 };
+
+export const findSubFolders = async (folderId : number, userId : number) => {
+  try {
+    return await prisma.folder.findMany({
+      where : {parentId : folderId , userId : userId}
+    });
+  } catch (error) {
+    throw new StorageError("DATABASE_ERROR", "Failed to fetch sub-folders");
+  }
+}
+
+export const findFilesByFolder = async (folderId : number , userId : number) =>{
+  try {
+    return await prisma.fileMetaData.findMany({
+      where : {
+        folderId : folderId,
+        userid : userId
+      },
+      select: {
+        id: true,
+        filename: true,
+        mimeType: true,
+        sizeKB: true,
+        cloudUrl: true,
+        uploadedAt: true,
+        folderId: true,
+      },
+      orderBy: { uploadedAt: "desc" }
+    });
+  } catch (error) {
+    throw new StorageError("DATABASE_ERROR", "Failed to fetch files");
+  }
+}
