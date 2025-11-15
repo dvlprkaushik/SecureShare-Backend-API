@@ -22,7 +22,7 @@ export const authMiddleware = (
 
   const { id } = verifyToken(token);
 
-  req.userId = id;
+  req.userId = Number(id);
 
   next();
 };
