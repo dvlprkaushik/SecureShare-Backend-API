@@ -44,7 +44,7 @@ model FileMetaData{
   uploadedAt DateTime @default(now())
   folderId Int?
   userid Int
-  shareToken String?
+  shareToken String? @unique
   shareExpiry DateTime?
   user User @relation(fields: [userid], references: [id], onDelete: Cascade)
   folder Folder? @relation(fields: [folderId], references: [id],onDelete: Cascade)
