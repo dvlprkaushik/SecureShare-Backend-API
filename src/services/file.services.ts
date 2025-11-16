@@ -1,5 +1,6 @@
 import { prisma } from "@/utils/prisma.js";
 import { StorageError } from "@/utils/StorageError.js";
+import { findFolderById } from "./folder.services.js";
 
 export interface Metadata {
   filename: string;
@@ -166,12 +167,60 @@ export const validateFolderOwnership = async (
   }
 };
 
-export const deleteFileById = async (fileId : number) =>{
+export const deleteFileById = async (fileId: number) => {
   try {
     await prisma.fileMetaData.delete({
-      where : {id : fileId}
+      where: { id: fileId },
     });
   } catch (error) {
-    throw new StorageError("DATABASE_ERROR", "Failed to delete file from database");
+    throw new StorageError(
+      "DATABASE_ERROR",
+      "Failed to delete file from database"
+    );
   }
-}
+};
+
+export const moveFileToFolder = async (
+  folderId: number | null,
+  fileId: number,
+  userId: number
+) => {
+  const file = await findFileById(fileId);
+  if (!file) {
+    throw new StorageError("FILE_NOT_FOUND");
+  }
+  if (file.userid !== userId) {
+    throw new StorageError("ACCESS_DENIED");
+  }
+
+  if (folderId !== null) {
+    const folder = await findFolderById(folderId);
+
+    if (!folder) {
+      throw new StorageError(
+        "FOLDER_NOT_FOUND",
+        "target folder does not exist"
+      );
+    }
+
+    if (folder.userId !== userId) {
+      throw new StorageError(
+        "ACCESS_DENIED",
+        "You cannot move file to this folder"
+      );
+    }
+  }
+
+  try {
+    const updatedFile = await prisma.fileMetaData.update({
+      where : {id : fileId},
+      data : {
+        folderId : folderId ?? null
+      }
+    })
+
+    return updatedFile;
+  } catch (error) {
+    throw new StorageError("DATABASE_ERROR","Failed to move file");
+  }
+};
