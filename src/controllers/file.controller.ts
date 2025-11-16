@@ -135,3 +135,33 @@ export const deleteFile = async (
     next(error);
   }
 };
+
+export const moveFile = async ( req : Request<{fileId : string},{},{folderId : string | null}> , res : Response, next : NextFunction) =>{
+  try {
+    const fileIdNumber = Number(req.params.fileId);
+    const folderIdNumber =Number(req.body.folderId);
+    const userId = req.userId;
+
+    if(isNaN(fileIdNumber)){
+      return next(new StorageError("VALIDATION_ERROR","Invalid file id"));
+    }
+
+    if(req.body.folderId !== null && isNaN(folderIdNumber)){
+      return next(new StorageError("VALIDATION_ERROR", "Invalid folder id"));
+    }
+
+    const updated = await file_service.moveFileToFolder(folderIdNumber,fileIdNumber,userId);
+
+    sendSuccess<file_service.Files>(res,"File moved successfully",{
+      id : updated.id,
+      filename : updated.filename,
+      mimeType : updated.mimeType,
+      sizeKB : updated.sizeKB,
+      cloudUrl : updated.cloudUrl,
+      uploadedAt : updated.uploadedAt,
+      folderId : updated.folderId
+    },200);
+  } catch (error) {
+    next(error);
+  }
+}
