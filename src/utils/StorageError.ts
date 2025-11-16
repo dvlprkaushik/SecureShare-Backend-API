@@ -86,6 +86,11 @@ export const ERROR_CODES = {
     message: "Share link has expired",
     status: 410,
   },
+  SHARE_NOT_FOUND: {
+    code: "SHARE_NOT_FOUND",
+    message: "Invalid or revoked share link",
+    status: 404,
+  },
   NO_FILE: {
     code: "NO_FILE",
     message: "File is required",
