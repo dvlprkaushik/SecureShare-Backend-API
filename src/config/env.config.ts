@@ -25,4 +25,7 @@ export const serverConfig = {
 
   // Salt rounds
   BCRYPT_SALT_ROUNDS: Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
+
+  // Urls
+  BASE_URL: process.env.BASE_URL
 };
