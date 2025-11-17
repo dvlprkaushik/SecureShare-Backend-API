@@ -123,7 +123,9 @@ export const deleteFile = async (
     }
 
     if (file.userid !== req.userId) {
-      return next(new StorageError("ACCESS_DENIED", "You do not own this file"));
+      return next(
+        new StorageError("ACCESS_DENIED", "You do not own this file")
+      );
     }
 
     await cloud_service.deleteFromCloudinary(file.cloudPublicId);
@@ -136,32 +138,87 @@ export const deleteFile = async (
   }
 };
 
-export const moveFile = async ( req : Request<{fileId : string},{},{folderId : string | null}> , res : Response, next : NextFunction) =>{
+export const moveFile = async (
+  req: Request<{ fileId: string }, {}, { folderId: string | null }>,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const fileIdNumber = Number(req.params.fileId);
-    const folderIdNumber =Number(req.body.folderId);
+    const folderIdNumber = Number(req.body.folderId);
     const userId = req.userId;
 
-    if(isNaN(fileIdNumber)){
-      return next(new StorageError("VALIDATION_ERROR","Invalid file id"));
+    if (isNaN(fileIdNumber)) {
+      return next(new StorageError("VALIDATION_ERROR", "Invalid file id"));
     }
 
-    if(req.body.folderId !== null && isNaN(folderIdNumber)){
+    if (req.body.folderId !== null && isNaN(folderIdNumber)) {
       return next(new StorageError("VALIDATION_ERROR", "Invalid folder id"));
     }
 
-    const updated = await file_service.moveFileToFolder(folderIdNumber,fileIdNumber,userId);
+    const updated = await file_service.moveFileToFolder(
+      folderIdNumber,
+      fileIdNumber,
+      userId
+    );
 
-    sendSuccess<file_service.Files>(res,"File moved successfully",{
-      id : updated.id,
-      filename : updated.filename,
-      mimeType : updated.mimeType,
-      sizeKB : updated.sizeKB,
-      cloudUrl : updated.cloudUrl,
-      uploadedAt : updated.uploadedAt,
-      folderId : updated.folderId
-    },200);
+    sendSuccess<file_service.Files>(
+      res,
+      "File moved successfully",
+      {
+        id: updated.id,
+        filename: updated.filename,
+        mimeType: updated.mimeType,
+        sizeKB: updated.sizeKB,
+        cloudUrl: updated.cloudUrl,
+        uploadedAt: updated.uploadedAt,
+        folderId: updated.folderId,
+      },
+      200
+    );
   } catch (error) {
     next(error);
   }
-}
+};
+
+export const renameFile = async (
+  req: Request<{ fileId: string }, {}, { newFileName: string }>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const fileIdNumber = Number(req.params.fileId);
+    const { newFileName } = req.body;
+    const userId = req.userId;
+
+    if (isNaN(fileIdNumber)) {
+      return next(new StorageError("VALIDATION_ERROR", "Invalid file id"));
+    }
+
+    if (!newFileName || newFileName.trim() === "") {
+      return next(new StorageError("VALIDATION_ERROR", "Invalid filename"));
+    }
+    const updated = await file_service.renameFileById(
+      fileIdNumber,
+      newFileName,
+      userId
+    );
+
+    sendSuccess<file_service.Files>(
+      res,
+      "File renamed successfully",
+      {
+        id: updated.id,
+        filename: updated.filename,
+        mimeType: updated.mimeType,
+        sizeKB: updated.sizeKB,
+        cloudUrl: updated.cloudUrl,
+        uploadedAt: updated.uploadedAt,
+        folderId: updated.folderId,
+      },
+      200
+    );
+  } catch (error) {
+    next(error);
+  }
+};
