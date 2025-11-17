@@ -10,5 +10,6 @@ fileRouter.get("/", authMiddleware,fileController.getFiles);
 fileRouter.get("/:fileId", authMiddleware, fileController.getFileById);
 fileRouter.delete("/:fileId", authMiddleware, fileController.deleteFile);
 fileRouter.patch("/:fileId/move", authMiddleware, fileController.moveFile);
+fileRouter.patch("/:fileId/rename", authMiddleware, fileController.renameFile);
 
 export { fileRouter };
