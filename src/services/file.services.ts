@@ -224,3 +224,24 @@ export const moveFileToFolder = async (
     throw new StorageError("DATABASE_ERROR","Failed to move file");
   }
 };
+
+export const renameFileById = async (fileId : number, newFileName : string, userId : number) =>{
+  const file = await findFileById(fileId);
+
+  if(file.userid !== userId){
+    throw new StorageError("ACCESS_DENIED","You do not down this file");
+  }
+
+  try {
+    const updated = await prisma.fileMetaData.update({
+      where : {id : fileId},
+      data : {
+        filename : newFileName
+      }
+    });
+
+    return updated;
+  } catch (error) {
+    throw new StorageError("DATABASE_ERROR","Failed to rename file");
+  }
+}
