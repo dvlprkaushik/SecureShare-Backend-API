@@ -14,6 +14,19 @@ type Credentials = {
   password: string;
 };
 
+export const credValidator = ({ email, password }: Credentials): string | null => {
+  if (
+    typeof email !== "string" ||
+    email.trim() === "" ||
+    typeof password !== "string" ||
+    password.trim() === ""
+  ) {
+    return "Email and password are required";
+  }
+
+  return null;
+};
+
 export const registerUser = async (
   req: Request<{}, {}, Credentials>,
   res: Response,
@@ -21,6 +34,12 @@ export const registerUser = async (
 ) => {
   try {
     const { email, password } = req.body;
+    const errorMsg = credValidator(req.body);
+
+    if (errorMsg) {
+      return next(new StorageError("VALIDATION_ERROR", errorMsg));
+    }
+
     let user = await auth_services.findUserByEmail(email);
     if (user) {
       return next(new StorageError("VALIDATION_ERROR", "Email already in use"));
@@ -50,6 +69,12 @@ export const login = async (
 ) => {
   try {
     const { email, password } = req.body;
+
+    const errorMsg = credValidator(req.body);
+
+    if (errorMsg) {
+      return next(new StorageError("VALIDATION_ERROR", errorMsg));
+    }
 
     let user = await auth_services.findUserByEmail(email);
 
