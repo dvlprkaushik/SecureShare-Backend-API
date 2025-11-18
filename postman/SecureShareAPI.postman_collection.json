@@ -1,0 +1,414 @@
+{
+	"info": {
+		"_postman_id": "f50f5ee2-1a23-412a-84d8-fc4d81b00cc3",
+		"name": "SecureShareAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "20479283"
+	},
+	"item": [
+		{
+			"name": "Health_Check",
+			"item": [
+				{
+					"name": "base_route",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}",
+						"description": "Retrieves data from the base API endpoint defined by the 'base_url' variable. This GET request is typically used to check the availability or status of the API, or to fetch general information provided at the root endpoint. No request body or parameters are required. Ensure the 'base_url' variable is set in the active environment before sending this request."
+					},
+					"response": []
+				},
+				{
+					"name": "info_route",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/info",
+						"description": "Retrieves general information about the SecureShareAPI backend service, including its name, version, description, author, repository, and license. \n\nPurpose:\nUse this endpoint to verify the API is running and to obtain metadata about the service.\n\nExpected Response:\n- Status: 200 OK\n- Body: JSON object with fields such as name, version, description, author, repository, and license.\n\nUsage Notes:\n- No authentication or parameters are required.\n- Useful for health checks, API discovery, or displaying API metadata in client applications."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth_Module",
+			"item": [
+				{
+					"name": "register_user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"test@anymail.com\",\r\n  \"password\": \"test@123\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{routes_url}}/auth/register",
+						"description": "Registers a new user by accepting an email and password in the request body."
+					},
+					"response": []
+				},
+				{
+					"name": "login_user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": ""
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"test@anymail.com\",\r\n  \"password\": \"test@123\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{routes_url}}/auth/login",
+						"description": "This request authenticates a user by sending their credentials to the authentication endpoint.\n\n**Purpose:**\nAuthenticate a user and retrieve an authentication token for subsequent API requests.\n\n**Endpoint:**\nPOST {{routes_url}}/auth/login\n\n**Required Parameters (JSON Body):**\n- `email` (string): The user's email address.\n- `password` (string): The user's password.\n\n**Expected Response:**\n- On success (typically HTTP 200): Returns a JSON object containing an authentication token and user details.\n- On failure (e.g., invalid credentials): Returns an error message with an appropriate HTTP status code (such as 401 Unauthorized).\n\nUse the returned token for authenticated requests to protected endpoints."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Files_Module",
+			"item": [
+				{
+					"name": "upload_file",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{auth_token}}"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/kaush/Downloads/sample_file.png"
+								}
+							]
+						},
+						"url": "{{routes_url}}/files/upload",
+						"description": "Uploads a file to the server using multipart/form-data.\n\n**Endpoint:** `POST {{routes_url}}/files/upload`\n\n**Authentication:**\n- Requires a valid bearer token provided in the `auth_token` environment variable. The token should be included in the `Authorization` header as `Bearer <token>`.\n\n**Request Body:**\n- Content-Type: `multipart/form-data`\n- Required field:\n  - `file`: The file to upload (as a form-data file input).\n- Additional form fields may be supported depending on API implementation, but `file` is mandatory.\n\n**Response:**\n- On success (`201 Created`), returns a JSON object with the following structure:\n  ```json\n  {\n    \"success\": true,\n    \"statusCode\": 201,\n    \"message\": \"File uploaded successfully\",\n    \"timestamp\": \"<ISO timestamp>\",\n    \"data\": {\n      \"id\": <number>,\n      \"filename\": \"<string>\",\n      \"mimeType\": \"<string>\",\n      \"sizeKB\": <number>,\n      \"cloudUrl\": \"<string>\",\n      \"uploadedAt\": \"<ISO timestamp>\",\n      \"folderId\": <number|null>\n    }\n  }\n  ```\n- The `data` object contains metadata about the uploaded file, including its unique ID, filename, MIME type, size in KB, cloud storage URL, upload timestamp, and optional folder association.\n\n**Errors:**\n- Returns appropriate error codes and messages for authentication failures, missing file data, or invalid requests.\n\n**Usage Notes:**\n- Ensure the `auth_token` environment variable is set before sending the request.\n- Use the \"Body\" tab to select `form-data` and add a `file` key with the file you wish to upload."
+					},
+					"response": []
+				},
+				{
+					"name": "get_files",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{auth_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "",
+									"type": "file",
+									"src": [],
+									"disabled": true
+								}
+							]
+						},
+						"url": "{{routes_url}}/files",
+						"description": "Retrieves a paginated list of files for the authenticated user. The response includes file metadata such as filename, MIME type, size (in KB), cloud URL, upload timestamp, and sharing information (if applicable). Use this endpoint to view all files associated with the current user, along with relevant details for each file."
+					},
+					"response": []
+				},
+				{
+					"name": "get_file_by_fileId",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{auth_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{routes_url}}/files/8",
+						"description": "This GET endpoint retrieves details about a specific file by its fileId. The response includes metadata such as the filename, MIME type, file size (in KB), cloud storage URL, and the upload timestamp."
+					},
+					"response": []
+				},
+				{
+					"name": "delete_file_by_fileId",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{auth_token}}"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "{{routes_url}}/files/8",
+						"description": "Deletes a file by its unique fileId.\n\n**Purpose:**\nRemoves a specific file from the system using its fileId.\n\n**Usage:**\n- Send a DELETE request to `{{routes_url}}/files/:fileId`, replacing `:fileId` with the ID of the file you want to delete.\n- Authentication is required. Include a valid `auth_token` in the request headers or as specified by your API's authentication scheme.\n\n**Required Parameters:**\n- `fileId` (path parameter): The unique identifier of the file to be deleted.\n- `auth_token` (variable): Used for authentication. Ensure this variable is set in your environment.\n- `routes_url` (variable): Base URL for the API routes. Ensure this variable is set in your environment.\n\n**Expected Response:**\n- On successful deletion, returns status code `203` with a JSON body:\n  ```json\n  {\n    \"success\": true,\n    \"statusCode\": 203,\n    \"message\": \"File deleted successfully\",\n    \"timestamp\": \"<timestamp>\",\n    \"data\": null\n  }\n  ```\n- If the file does not exist or deletion fails, an error response will be returned.\n\n**Example Request:**\n```\nDELETE {{routes_url}}/files/8\nHeaders: Authorization: Bearer {{auth_token}}\n```\n\n**Example Success Response:**\n```\nStatus: 203\n{\n  \"success\": true,\n  \"statusCode\": 203,\n  \"message\": \"File deleted successfully\",\n  \"timestamp\": \"2025-11-17T18:09:02.130Z\",\n  \"data\": null\n}\n```\n"
+					},
+					"response": []
+				},
+				{
+					"name": "move_file_to_folder_by_folderId",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{auth_token}}"
+							}
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"folderId\" : 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{routes_url}}/files/9/move",
+						"description": "**Purpose:**\nMoves a file with a specific file ID to a target folder within the storage system.\n\n**Endpoint:**\nPATCH {{routes_url}}/files/9/move\n\n**Required Parameters:**\n- **Path Parameter:**\n  - `fileId` (in URL): The ID of the file to move. In this request, the file ID is '9'.\n- **Request Body (JSON):**\n  - `folderId` (integer, required): The ID of the target folder where the file should be moved. Example: `{ \"folderId\": 1 }`\n\n**Authentication:**\nRequires a valid `auth_token` (typically provided as a header or environment variable).\n\n**Expected Behavior:**\n- On success, the file is moved to the specified folder, and a success response is returned.\n- If the target folder does not exist, the request will fail with an error.\n\n**Possible Error Responses:**\n- `404 Not Found`: Returned if the target folder does not exist. Example response:\n  ```json\n  {\n    \"success\": false,\n    \"status\": 404,\n    \"error_name\": \"StorageError\",\n    \"error_message\": \"target folder does not exist\",\n    \"error_code\": \"FOLDER_NOT_FOUND\",\n    \"route\": \"/api/v1/files/9/move\",\n    \"timestamp\": \"<timestamp>\"\n  }\n  ```\n- Other standard error codes may apply depending on authentication or server issues.\n\n**Usage Example:**\n```json\nPATCH {{routes_url}}/files/9/move\nBody: { \"folderId\": 1 }\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "rename_file_by_fileId",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{auth_token}}"
+							}
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"newFileName\" : \"sample_api_image.png\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{routes_url}}/files/9/rename",
+						"description": "Renames a file by its fileId. Expects a JSON body with the new file name (\"newFileName\"). Returns a success message and updated file details upon successful rename."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Folders_Module",
+			"item": [
+				{
+					"name": "create_folder",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{auth_token}}"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"folderName\" : \"my_images\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{routes_url}}/folders",
+						"description": "**Endpoint:** `POST /folders`\n\nCreates a new folder in the system.\n\n### Request Body\n- `folderName` (string, required): The name of the folder to be created.\n- `parentId` (integer, optional): The ID of the parent folder. If omitted or null, the folder will be created at the root level.\n\n**Example:**\n```json\n{\n  \"folderName\": \"my_images\",\n  \"parentId\": null\n}\n```\n\n### Response\n- **201 Created**: Folder was created successfully.\n\n**Example Response:**\n```json\n{\n  \"success\": true,\n  \"statusCode\": 201,\n  \"message\": \"Folder created successfully\",\n  \"timestamp\": \"2025-11-18T05:25:39.296Z\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"my_images\",\n    \"parentId\": null,\n    \"createdAt\": \"2025-11-18T05:25:38.785Z\"\n  }\n}\n```\n\n### Usage Notes\n- The `folderName` must be unique within its parent context (if applicable).\n- If `parentId` is provided, the new folder will be created as a subfolder.\n- Authentication may be required; ensure the `auth_token` variable is set in your environment.\n- The endpoint returns details of the newly created folder in the `data` field of the response."
+					},
+					"response": []
+				},
+				{
+					"name": "get_folders",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{auth_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{routes_url}}/folders",
+						"description": "**Purpose:**  \nThis GET endpoint retrieves a list of folders from the server.\n\n**Usage:**\n\n- **Endpoint:** `{{routes_url}}/folders`\n    \n- **Authentication:** Requires a valid `auth_token` (typically provided as a header or environment variable).\n    \n\n**Response:**\n\n- On success (`200 OK`), returns a JSON object containing:\n    - `success`: Boolean indicating the operation status.\n        \n    - `statusCode`: HTTP status code (should be 200).\n        \n    - `message`: Informational message about the operation.\n        \n    - `timestamp`: The server time when the response was generated.\n        \n    - `data.folders`: An array of folder objects, each with:\n        - `id`: Unique identifier for the folder.\n            \n        - `name`: Name of the folder.\n            \n        - `parentId`: ID of the parent folder (or `null` if top-level).\n            \n        - `createdAt`: Timestamp of folder creation (ISO 8601 format).\n            \n\n**Example Response:**\n\n``` json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"Folders fetched successfully\",\n  \"timestamp\": \"2025-11-18T05:29:38.113Z\",\n  \"data\": {\n    \"folders\": [\n      {\n        \"id\": 1,\n        \"name\": \"my_images\",\n        \"parentId\": null,\n        \"createdAt\": \"2025-11-18T05:25:38.785Z\"\n      }\n    ]\n  }\n}\n\n ```\n\nUse this endpoint to programmatically list all available folders, their hierarchy, and creation details."
+					},
+					"response": []
+				},
+				{
+					"name": "get_folder_by_Id",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{auth_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": "{{routes_url}}/folders/1",
+						"description": "**Description:**\n\nRetrieves detailed information about a specific folder by its unique ID.\n\n**Endpoint:**\n`GET {{routes_url}}/folders/1`\n\n**Path Parameters:**\n- `1` (in URL): The unique identifier of the folder to fetch. In this request, the folder ID is hardcoded as `1`.\n\n**Variables Used:**\n- `{{routes_url}}`: Base URL for the API, defined as an environment or collection variable.\n- `{{auth_token}}`: (Not directly used in the URL, but may be required for authentication in headers or elsewhere.)\n\n**Typical Successful Response (`200 OK`):**\n```\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"Folder fetched successfully\",\n  \"timestamp\": \"2025-11-18T05:38:32.154Z\",\n  \"data\": {\n    \"folder\": {\n      \"id\": 1,\n      \"name\": \"my_images\",\n      \"parentId\": null,\n      \"createdAt\": \"2025-11-18T05:25:38.785Z\"\n    },\n    \"subfolders\": [],\n    \"files\": []\n  }\n}\n```\n\n**Response Fields:**\n- `folder`: Object containing folder details (`id`, `name`, `parentId`, `createdAt`).\n- `subfolders`: Array of subfolder objects (empty if none).\n- `files`: Array of file objects (empty if none).\n\n**Usage Notes:**\n- Ensure the `routes_url` variable is set in your environment.\n- If authentication is required, make sure the `auth_token` variable is set and used appropriately in headers."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Share_Module",
+			"item": [
+				{
+					"name": "generate_file_share_llink_with_expirytime",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{auth_token}}"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fileId\" : 9,\r\n    // 5 minutes of expiry time in \"hours\"\r\n    \"expiryHours\" : 0.0833333\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{routes_url}}/share/generate",
+						"description": "This POST endpoint generates a shareable link for a file, given its fileId and an expiry time in hours.\n\nRequired request body parameters:\n\n- fileId (integer): The ID of the file to share.\n    \n- expiryHours (integer): The number of hours the share link will remain valid.\n    \n\nThe response includes the generated share URL, a token for accessing the file, and the expiry timestamp."
+					},
+					"response": []
+				},
+				{
+					"name": "access_file_share_link_by_filetoken",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{routes_url}}/share/tSH3etqbMZIBABtASyoNh7R4W9lYj2YB",
+						"description": "**Description:**\n\nThis endpoint allows you to access a shared file via a public link using a file token. It is typically used to retrieve file metadata and a direct download URL for files that have been shared externally.\n\n**HTTP Method:**\nGET\n\n**URL:**\n`{{routes_url}}/share/:fileToken`\n- `:fileToken` (required, path parameter): The unique token representing the shared file. Replace this in the URL with the actual file token you received when the file was shared.\n\n**Required Variables:**\n- `routes_url`: The base URL for the API, provided by your environment or configuration.\n\n**Response:**\n- On success (`200 OK`), returns a JSON object with the following structure:\n  - `success` (boolean): Indicates if the request was successful.\n  - `statusCode` (integer): HTTP status code (should be 200).\n  - `message` (string): Status message.\n  - `timestamp` (string): Time of the response.\n  - `data` (object):\n    - `id` (integer): File ID.\n    - `filename` (string): Name of the file.\n    - `mimeType` (string): MIME type of the file.\n    - `sizeKB` (integer): File size in kilobytes.\n    - `cloudUrl` (string): Direct URL to access/download the file.\n    - `uploadedAt` (string): Timestamp when the file was uploaded.\n    - `folderId` (nullable): ID of the folder containing the file, if any.\n\n**Usage Notes:**\n- No authentication is required to access files via a valid public link.\n- Ensure the file token is valid and has not expired or been revoked.\n- The endpoint does not require a request body.\n- The response includes a direct download link (`cloudUrl`) for the file.\n\n**Example Success Response:**\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"File accessed via public link\",\n  \"timestamp\": \"2025-11-18T06:41:48.137Z\",\n  \"data\": {\n    \"id\": 9,\n    \"filename\": \"sample_api_image.png\",\n    \"mimeType\": \"image/png\",\n    \"sizeKB\": 5,\n    \"cloudUrl\": \"https://res.cloudinary.com/.../sample_api_image.png\",\n    \"uploadedAt\": \"2025-11-17T18:11:01.768Z\",\n    \"folderId\": null\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "revoke_file_share_link_by_fileId",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{auth_token}}"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{routes_url}}/share/9/revoke",
+						"description": "### Description\n\n**Deletes (revokes) a file share link by its file ID.**\n\nUse this endpoint to revoke access to a previously shared file link, making the file inaccessible via that link.\n\n#### **Usage**\n- **Method:** `DELETE`\n- **URL:** `{{routes_url}}/share/{{fileId}}/revoke`\n- **Authentication:** Requires Bearer token (`auth_token`) in the request headers.\n\n#### **Path Parameter**\n- `fileId` (integer): The unique identifier of the file whose share link you want to revoke.\n\n#### **Required Variables**\n- `routes_url`: Base URL for the API.\n- `auth_token`: Bearer token for authentication.\n\n#### **Expected Response**\nOn success (`HTTP 200`), returns a JSON object confirming the revocation:\n\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"Share link revoked successfully\",\n  \"timestamp\": \"2025-11-18T06:47:11.038Z\",\n  \"data\": {\n    \"fileId\": 9,\n    \"revoked\": true\n  }\n}\n```\n\n- `success`: Indicates the operation was successful.\n- `statusCode`: HTTP status code.\n- `message`: Confirmation message.\n- `timestamp`: Time of the operation.\n- `data.fileId`: The ID of the file whose share link was revoked.\n- `data.revoked`: Boolean indicating revocation status.\n\n---"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
