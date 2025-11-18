@@ -57,6 +57,41 @@ Three core Prisma models:
 
 Full schema available in `/prisma/schema.prisma`
 
+## Try Now - Live Deployment & Health Routes
+
+Test the API instantly at: [Visit](https://secureshare-backend-api.onrender.com)
+
+### Health Check
+[Visit](https://secureshare-backend-api.onrender.com/) `GET /`
+
+Returns server status and timestamp.
+
+**Live Example**: `curl https://secureshare-backend-api.onrender.com/`
+
+**Response**:
+```json
+{"status":"OK","message":"Server is running 🚀","time":"2025-11-18T11:46:16.482Z"}
+```
+
+### Info
+[Visit](https://secureshare-backend-api.onrender.com/info) `GET /info`
+
+Returns package metadata (name, version, description, author, repo, license).
+
+**Live Example**: `curl https://secureshare-backend-api.onrender.com/info`
+
+**Response**:
+```json
+{
+  "name": "fileshare_backend_api",
+  "version": "1.0.0",
+  "description": "A secure and scalable file-sharing backend API built with Express, TypeScript, Prisma, and Cloudinary. Supports file uploads, folder hierarchy, JWT auth, and shareable links with expiry.",
+  "author": "Kaushik <dvlprkaushik>",
+  "repository": "https://github.com/dvlprkaushik/SecureShare-Backend-API.git",
+  "license": "ISC"
+}
+```
+
 ## API Documentation
 
 ### Health Check Routes
