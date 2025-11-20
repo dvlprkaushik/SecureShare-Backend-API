@@ -1,14 +1,14 @@
-import * as file_service from "@/services/file.services.js";
-import * as cloud_service from "@/services/cloudinary.services.js";
-import { StorageError } from "@/utils/StorageError.js";
-import { NextFunction, Request, Response } from "express";
-import { sendSuccess } from "@/utils/ResponseUtils.js";
 import {
   FileIdInput,
   FileUploadInput,
   MoveFileInput,
   RenameFileInput,
 } from "@/schemas/file.schema.js";
+import * as cloud_service from "@/services/cloudinary.services.js";
+import * as file_service from "@/services/file.services.js";
+import { sendSuccess } from "@/utils/ResponseUtils.js";
+import { StorageError } from "@/utils/StorageError.js";
+import { NextFunction, Request, Response } from "express";
 
 export const uploadFile = async (
   req: Request<{}, {}, FileUploadInput>,
@@ -76,12 +76,12 @@ export const getFiles = async (
 };
 
 export const getFileById = async (
-  req: Request<FileIdInput>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { fileId } = req.params;
+    const { fileId } = req.params as unknown as FileIdInput;
 
     const file = await file_service.findFileById(fileId);
 
@@ -106,12 +106,12 @@ export const getFileById = async (
 };
 
 export const deleteFile = async (
-  req: Request<FileIdInput>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { fileId } = req.params;
+    const { fileId } = req.params as unknown as FileIdInput;
     const file = await file_service.findFileById(fileId);
 
     if (!file) {
@@ -135,13 +135,13 @@ export const deleteFile = async (
 };
 
 export const moveFile = async (
-  req: Request<FileIdInput, {}, MoveFileInput>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { fileId } = req.params;
-    const { folderId } = req.body;
+    const { fileId } = req.params as unknown as FileIdInput;
+    const { folderId } = req.body as unknown as MoveFileInput;
     const userId = req.userId;
 
     const updated = await file_service.moveFileToFolder(
@@ -170,17 +170,17 @@ export const moveFile = async (
 };
 
 export const renameFile = async (
-  req: Request<FileIdInput, {}, RenameFileInput>,
+  req: Request<{}, {}, RenameFileInput>,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const fileIdNumber = Number(req.params.fileId);
+    const {fileId} = req.params as unknown as FileIdInput;
     const { filename } = req.body;
     const userId = req.userId;
 
     const updated = await file_service.renameFileById(
-      fileIdNumber,
+      fileId,
       filename,
       userId
     );
