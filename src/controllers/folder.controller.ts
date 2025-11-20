@@ -89,12 +89,12 @@ interface NestedFolderDto {
   files: Files[];
 }
 export const getFolderById = async (
-  req: Request<FolderIdInput>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { folderId } = req.params;
+    const { folderId } = req.params as unknown as FolderIdInput;
 
     const rawFolder = await folder_service.findFolderById(folderId);
 
