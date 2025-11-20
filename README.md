@@ -182,7 +182,7 @@ Form Data:
 **Create Request:**
 ```json
 {
-  "name": "MyFolder",
+  "folderName": "MyFolder",
   "parentId": 5
 }
 ```
