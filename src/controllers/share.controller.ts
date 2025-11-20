@@ -49,12 +49,12 @@ export const generateShareLink = async (
 };
 
 export const accessSharedFile = async (
-  req: Request<ShareTokenInput>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { token } = req.params;
+    const { token } = req.params as unknown as ShareTokenInput;
 
     const file = await share_service.accessSharedFile(token);
 
@@ -78,12 +78,12 @@ export const accessSharedFile = async (
 };
 
 export const revokeShareLink = async (
-  req: Request<FileIdInput>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { fileId } = req.params;
+    const { fileId } = req.params as unknown as FileIdInput;
     const userId = req.userId;
 
     const { fileId: revokedFileId, revoked } =
