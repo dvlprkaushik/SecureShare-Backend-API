@@ -1,6 +1,7 @@
 import { StorageError } from "@/utils/StorageError.js";
 import { ErrorRequestHandler, Response } from "express";
 import { MulterError } from "multer";
+import { ZodError } from "zod";
 
 const errorResponder = (
   res: Response,
@@ -22,6 +23,17 @@ const errorResponder = (
 };
 
 export const errorhandler: ErrorRequestHandler = (err, req, res, _next) => {
+  // ZodError
+  if (err instanceof ZodError) {
+    return errorResponder(
+      res,
+      err.name,
+      err.message,
+      "VALIDATION_FAILED",
+      400,
+      req.originalUrl
+    );
+  }
   // StorageError
   if (err instanceof StorageError) {
     return errorResponder(

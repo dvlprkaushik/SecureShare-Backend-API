@@ -3,42 +3,20 @@ import * as auth_services from "../services/auth.services.js";
 import { StorageError } from "@/utils/StorageError.js";
 import { generateToken } from "@/utils/TokenUtils.js";
 import { sendHeader, sendSuccess } from "@/utils/ResponseUtils.js";
+import { LoginInput, RegisterInput } from "@/schemas/auth.schema.js";
 
 type User = {
   id: number;
   email: string;
 };
 
-type Credentials = {
-  email: string;
-  password: string;
-};
-
-export const credValidator = ({ email, password }: Credentials): string | null => {
-  if (
-    typeof email !== "string" ||
-    email.trim() === "" ||
-    typeof password !== "string" ||
-    password.trim() === ""
-  ) {
-    return "Email and password are required";
-  }
-
-  return null;
-};
-
 export const registerUser = async (
-  req: Request<{}, {}, Credentials>,
+  req: Request<{}, {}, RegisterInput>,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { email, password } = req.body;
-    const errorMsg = credValidator(req.body);
-
-    if (errorMsg) {
-      return next(new StorageError("VALIDATION_ERROR", errorMsg));
-    }
 
     let user = await auth_services.findUserByEmail(email);
     if (user) {
@@ -63,18 +41,12 @@ export const registerUser = async (
 };
 
 export const login = async (
-  req: Request<{}, {}, Credentials>,
+  req: Request<{}, {}, LoginInput>,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { email, password } = req.body;
-
-    const errorMsg = credValidator(req.body);
-
-    if (errorMsg) {
-      return next(new StorageError("VALIDATION_ERROR", errorMsg));
-    }
 
     let user = await auth_services.findUserByEmail(email);
 

@@ -1,42 +1,38 @@
-import { StorageError } from "@/utils/StorageError.js";
 import { NextFunction, Request, Response } from "express";
 import * as share_service from "@/services/share.services.js";
 import { sendSuccess } from "@/utils/ResponseUtils.js";
 import { serverConfig as scf } from "@/config/env.config.js";
 import { Files } from "@/services/file.services.js";
+import {
+  GenerateShareInput,
+  ShareTokenInput,
+} from "@/schemas/share.schema.js";
+import { FileIdInput } from "@/schemas/file.schema.js";
 
-export interface ShareSafeDto {
+export interface SafeShareDto {
   fileId: number;
   shareUrl: string;
   token: string;
   expiresAt: Date;
 }
+
 export const generateShareLink = async (
-  req: Request<{}, {}, { fileId: string; expiryHours: string }>,
+  req: Request<{}, {}, GenerateShareInput>,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const fileIdNumber = Number(req.body.fileId);
-    const expiryHoursNumber = Number(req.body.expiryHours);
-
-    if (isNaN(fileIdNumber)) {
-      return next(new StorageError("VALIDATION_ERROR", "Invalid fileId"));
-    }
-
-    if (isNaN(expiryHoursNumber)) {
-      return next(new StorageError("VALIDATION_ERROR", "Invalid expiryHours"));
-    }
+    const { fileId, expiryHours } = req.body;
 
     const userId = req.userId;
 
     const updated = await share_service.generateShareLink(
-      fileIdNumber,
-      expiryHoursNumber,
+      fileId,
+      expiryHours,
       userId
     );
 
-    return sendSuccess<ShareSafeDto>(
+    return sendSuccess<SafeShareDto>(
       res,
       "Share link generated successfully",
       {
@@ -53,18 +49,14 @@ export const generateShareLink = async (
 };
 
 export const accessSharedFile = async (
-  req: Request<{ token: string }>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const shareToken = req.params.token;
+    const { token } = req.params as unknown as ShareTokenInput;
 
-    if (!shareToken || shareToken.trim() === "") {
-      return next(new StorageError("VALIDATION_ERROR", "Invalid share token"));
-    }
-
-    const file = await share_service.accessSharedFile(shareToken);
+    const file = await share_service.accessSharedFile(token);
 
     return sendSuccess<Files>(
       res,
@@ -86,28 +78,22 @@ export const accessSharedFile = async (
 };
 
 export const revokeShareLink = async (
-  req: Request<{ fileId: string }>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const fileIdNumber = Number(req.params.fileId);
+    const { fileId } = req.params as unknown as FileIdInput;
     const userId = req.userId;
 
-    if (isNaN(fileIdNumber)) {
-      return next(new StorageError("VALIDATION_ERROR", "Invalid file id"));
-    }
-
-    const { fileId, revoked } = await share_service.revokeShareLink(
-      fileIdNumber,
-      userId
-    );
+    const { fileId: revokedFileId, revoked } =
+      await share_service.revokeShareLink(fileId, userId);
 
     return sendSuccess<{ fileId: number; revoked: boolean }>(
       res,
       "Share link revoked successfully",
       {
-        fileId: fileId,
+        fileId: revokedFileId,
         revoked: revoked,
       }
     );

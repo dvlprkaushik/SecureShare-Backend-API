@@ -1,11 +1,17 @@
-import * as file_service from "@/services/file.services.js";
+import {
+  FileIdInput,
+  FileUploadInput,
+  MoveFileInput,
+  RenameFileInput,
+} from "@/schemas/file.schema.js";
 import * as cloud_service from "@/services/cloudinary.services.js";
+import * as file_service from "@/services/file.services.js";
+import { sendSuccess } from "@/utils/ResponseUtils.js";
 import { StorageError } from "@/utils/StorageError.js";
 import { NextFunction, Request, Response } from "express";
-import { sendSuccess } from "@/utils/ResponseUtils.js";
 
 export const uploadFile = async (
-  req: Request<{}, {}, { folderId?: number | null }>,
+  req: Request<{}, {}, FileUploadInput>,
   res: Response,
   next: NextFunction
 ) => {
@@ -15,9 +21,7 @@ export const uploadFile = async (
     }
     const { folderId } = req.body;
 
-    const folderIdNumber = folderId != null ? Number(folderId) : null;
-
-    await file_service.validateFolderOwnership(folderIdNumber, req.userId);
+    await file_service.validateFolderOwnership(folderId, req.userId);
 
     const upload_result = await cloud_service.uploadToCloudinary(req.file);
 
@@ -28,7 +32,7 @@ export const uploadFile = async (
       cloudUrl: upload_result.secure_url,
       cloudPublicId: upload_result.public_id,
       userId: req.userId,
-      folderId: folderIdNumber,
+      folderId: folderId,
     });
 
     return sendSuccess<file_service.Files>(
@@ -58,10 +62,8 @@ export const getFiles = async (
   try {
     const { mimeType, folderId, limit, page } = req.query;
 
-    const folderIdNumber = folderId != null ? Number(folderId) : null;
-
     const files_result = await file_service.getUserFiles(req.userId, {
-      folderId: folderIdNumber,
+      folderId: folderId,
       mimeType: mimeType,
       page: page,
       limit: limit,
@@ -74,15 +76,12 @@ export const getFiles = async (
 };
 
 export const getFileById = async (
-  req: Request<{ fileId: string }>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const fileId = Number(req.params.fileId);
-    if (isNaN(fileId)) {
-      return next(new StorageError("VALIDATION_ERROR", "Invalid file id"));
-    }
+    const { fileId } = req.params as unknown as FileIdInput;
 
     const file = await file_service.findFileById(fileId);
 
@@ -107,15 +106,12 @@ export const getFileById = async (
 };
 
 export const deleteFile = async (
-  req: Request<{ fileId: string }>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const fileId = Number(req.params.fileId);
-    if (isNaN(fileId)) {
-      return next(new StorageError("VALIDATION_ERROR", "Invalid file id"));
-    }
+    const { fileId } = req.params as unknown as FileIdInput;
     const file = await file_service.findFileById(fileId);
 
     if (!file) {
@@ -139,26 +135,18 @@ export const deleteFile = async (
 };
 
 export const moveFile = async (
-  req: Request<{ fileId: string }, {}, { folderId: string | null }>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const fileIdNumber = Number(req.params.fileId);
-    const folderIdNumber = Number(req.body.folderId);
+    const { fileId } = req.params as unknown as FileIdInput;
+    const { folderId } = req.body as unknown as MoveFileInput;
     const userId = req.userId;
 
-    if (isNaN(fileIdNumber)) {
-      return next(new StorageError("VALIDATION_ERROR", "Invalid file id"));
-    }
-
-    if (req.body.folderId !== null && isNaN(folderIdNumber)) {
-      return next(new StorageError("VALIDATION_ERROR", "Invalid folder id"));
-    }
-
     const updated = await file_service.moveFileToFolder(
-      folderIdNumber,
-      fileIdNumber,
+      folderId,
+      fileId,
       userId
     );
 
@@ -182,25 +170,18 @@ export const moveFile = async (
 };
 
 export const renameFile = async (
-  req: Request<{ fileId: string }, {}, { newFileName: string }>,
+  req: Request<{}, {}, RenameFileInput>,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const fileIdNumber = Number(req.params.fileId);
-    const { newFileName } = req.body;
+    const {fileId} = req.params as unknown as FileIdInput;
+    const { filename } = req.body;
     const userId = req.userId;
 
-    if (isNaN(fileIdNumber)) {
-      return next(new StorageError("VALIDATION_ERROR", "Invalid file id"));
-    }
-
-    if (!newFileName || newFileName.trim() === "") {
-      return next(new StorageError("VALIDATION_ERROR", "Invalid filename"));
-    }
     const updated = await file_service.renameFileById(
-      fileIdNumber,
-      newFileName,
+      fileId,
+      filename,
       userId
     );
 

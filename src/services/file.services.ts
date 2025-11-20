@@ -1,6 +1,7 @@
 import { prisma } from "@/utils/prisma.js";
 import { StorageError } from "@/utils/StorageError.js";
 import { findFolderById } from "./folder.services.js";
+import { z } from "zod/v4";
 
 export interface Metadata {
   filename: string;
@@ -51,12 +52,14 @@ export const createFileMetadata = async (data: Metadata) => {
 };
 
 // All fields are optional because query parameters in GET requests are not guaranteed to be present
-export interface FileFilters {
-  folderId?: number | null;
-  mimeType?: string;
-  page?: number | null;
-  limit?: number | null;
-}
+export const fileFiltersQuerySchema = z.object({
+  mimeType: z.string().optional(),
+  folderId: z.coerce.number().int().nonnegative().optional().nullable(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  page: z.coerce.number().int().min(1).optional(),
+});
+
+export type FileFilters = z.infer<typeof fileFiltersQuerySchema>;
 
 export type Files = {
   id: number;

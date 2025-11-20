@@ -3,11 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import * as folder_service from "@/services/folder.services.js";
 import { sendSuccess } from "@/utils/ResponseUtils.js";
 import { Files } from "@/services/file.services.js";
-
-export interface CreateFolder {
-  folderName: string;
-  parentId?: string;
-}
+import { CreateFolderInput, FolderIdInput } from "@/schemas/folder.schema.js";
 
 export interface SafeFolderDto {
   id: number;
@@ -17,25 +13,13 @@ export interface SafeFolderDto {
 }
 
 export const createFolder = async (
-  req: Request<{}, {}, CreateFolder>,
+  req: Request<{}, {}, CreateFolderInput>,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { folderName, parentId } = req.body;
-    let parentIdNumber;
-    if (folderName === null || folderName.trim() === "") {
-      return next(new StorageError("VALIDATION_ERROR", "Invalid folder name"));
-    }
-
-    if (parentId) {
-      parentIdNumber = Number(parentId);
-      if (isNaN(parentIdNumber)) {
-        return next(new StorageError("VALIDATION_ERROR", "Invalid parent id"));
-      }
-    } else {
-      parentIdNumber = null;
-    }
+    const parentIdNumber = parentId ?? null;
 
     if (parentIdNumber !== null) {
       const folder = await folder_service.findFolderById(parentIdNumber);
@@ -105,16 +89,12 @@ interface NestedFolderDto {
   files: Files[];
 }
 export const getFolderById = async (
-  req: Request<{ folderId: string }>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const folderId = Number(req.params.folderId);
-
-    if (isNaN(folderId)) {
-      return next(new StorageError("VALIDATION_ERROR", "Invalid folder id"));
-    }
+    const { folderId } = req.params as unknown as FolderIdInput;
 
     const rawFolder = await folder_service.findFolderById(folderId);
 
