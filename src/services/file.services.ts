@@ -55,8 +55,8 @@ export const createFileMetadata = async (data: Metadata) => {
 export const fileFiltersQuerySchema = z.object({
   mimeType: z.string().optional(),
   folderId: z.coerce.number().int().nonnegative().optional().nullable(),
-  limit: z.coerce.number().int().min(1).max(100).optional().default(10),
-  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  page: z.coerce.number().int().min(1).optional(),
 });
 
 export type FileFilters = z.infer<typeof fileFiltersQuerySchema>;
