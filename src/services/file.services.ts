@@ -58,7 +58,8 @@ const fileFiltersQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional().default(10),
   page: z.coerce.number().int().min(1).optional().default(1),
 });
-type FileFilters = z.infer<typeof fileFiltersQuerySchema>;
+
+export type FileFilters = z.infer<typeof fileFiltersQuerySchema>;
 
 export type Files = {
   id: number;
