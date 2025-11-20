@@ -6,7 +6,7 @@ import { ZodError } from "zod";
 const errorResponder = (
   res: Response,
   error_name: string = "Not defined",
-  error_message: string = "Internal server error",
+  error_message: string | string[] = "Internal server error",
   error_code: string | null = "SERVER_ERROR",
   statusCode: number = 500,
   req_route?: string
@@ -28,7 +28,7 @@ export const errorhandler: ErrorRequestHandler = (err, req, res, _next) => {
     return errorResponder(
       res,
       err.name,
-      err.message,
+      err.issues.map((issue) => issue.message),
       "VALIDATION_FAILED",
       400,
       req.originalUrl
