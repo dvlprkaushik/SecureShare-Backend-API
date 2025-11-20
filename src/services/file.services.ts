@@ -52,7 +52,7 @@ export const createFileMetadata = async (data: Metadata) => {
 };
 
 // All fields are optional because query parameters in GET requests are not guaranteed to be present
-const fileFiltersQuerySchema = z.object({
+export const fileFiltersQuerySchema = z.object({
   mimeType: z.string().optional(),
   folderId: z.coerce.number().int().nonnegative().optional().nullable(),
   limit: z.coerce.number().int().min(1).max(100).optional().default(10),
