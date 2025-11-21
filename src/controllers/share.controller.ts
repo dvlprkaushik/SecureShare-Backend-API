@@ -17,12 +17,12 @@ export interface SafeShareDto {
 }
 
 export const generateShareLink = async (
-  req: Request<{}, {}, GenerateShareInput>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { fileId, expiryHours } = req.body;
+    const { fileId, expiryHours } = req.validated as GenerateShareInput;
 
     const userId = req.userId;
 
@@ -54,7 +54,7 @@ export const accessSharedFile = async (
   next: NextFunction
 ) => {
   try {
-    const { token } = req.params as unknown as ShareTokenInput;
+    const { token } = req.validated as ShareTokenInput;
 
     const file = await share_service.accessSharedFile(token);
 
@@ -83,7 +83,7 @@ export const revokeShareLink = async (
   next: NextFunction
 ) => {
   try {
-    const { fileId } = req.params as unknown as FileIdInput;
+    const { fileId } = req.validated as FileIdInput;
     const userId = req.userId;
 
     const { fileId: revokedFileId, revoked } =

@@ -13,12 +13,12 @@ export interface SafeFolderDto {
 }
 
 export const createFolder = async (
-  req: Request<{}, {}, CreateFolderInput>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { folderName, parentId } = req.body;
+    const { folderName, parentId } = req.validated as CreateFolderInput;
     const parentIdNumber = parentId ?? null;
 
     if (parentIdNumber !== null) {
@@ -94,7 +94,7 @@ export const getFolderById = async (
   next: NextFunction
 ) => {
   try {
-    const { folderId } = req.params as unknown as FolderIdInput;
+    const { folderId } = req.validated as FolderIdInput;
 
     const rawFolder = await folder_service.findFolderById(folderId);
 

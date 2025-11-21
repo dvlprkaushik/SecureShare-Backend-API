@@ -11,12 +11,12 @@ type User = {
 };
 
 export const registerUser = async (
-  req: Request<{}, {}, RegisterInput>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.validated as RegisterInput;
 
     let user = await auth_services.findUserByEmail(email);
     if (user) {
@@ -41,12 +41,12 @@ export const registerUser = async (
 };
 
 export const login = async (
-  req: Request<{}, {}, LoginInput>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.validated as LoginInput;
 
     let user = await auth_services.findUserByEmail(email);
 
