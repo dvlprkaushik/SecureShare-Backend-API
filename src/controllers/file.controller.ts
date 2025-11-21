@@ -21,7 +21,7 @@ export const uploadFile = async (
     }
     const { folderId } = req.body;
 
-    await file_service.validateFolderOwnership(folderId, req.userId);
+    await file_service.validateFolderOwnership(folderId ?? null, req.userId);
 
     const upload_result = await cloud_service.uploadToCloudinary(req.file);
 
