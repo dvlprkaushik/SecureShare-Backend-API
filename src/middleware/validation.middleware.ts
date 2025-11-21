@@ -21,7 +21,14 @@ export const validate = <T extends z.ZodType>(
       return next(validatedData.error);
     }
 
-    (req as Request & {validated : z.infer<T>}).validated = validatedData.data;
+    /**
+     * Type assertion needed: req.validated loses its specific type when
+     * passing through middleware chain. The z.infer<T> type from validation
+     * middleware doesn't propagate to controllers, so we explicitly cast it in controllers.
+     *
+     * @example const { email, password } = req.validated as LoginInput;
+     */
+    (req as Request & { validated: z.infer<T> }).validated = validatedData.data;
 
     next();
   };
