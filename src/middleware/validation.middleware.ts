@@ -21,7 +21,7 @@ export const validate = <T extends z.ZodType>(
       return next(validatedData.error);
     }
 
-    (req as any)[source] = validatedData.data;
+    (req as Request & {validated : z.infer<T>}).validated = validatedData.data;
 
     next();
   };
