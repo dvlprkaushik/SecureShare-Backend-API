@@ -16,7 +16,11 @@ const app = express();
 app.use(express.json({ limit: scf.MAX_JSON_SIZE }));
 app.use(express.urlencoded({ extended: true, limit: scf.MAX_JSON_SIZE }));
 app.use(cors({
-  origin : "*"
+  origin : scf.NODE_ENV === "development" ? "*" : scf.FRONTEND_URL,
+  exposedHeaders : ["Authorization"],
+  allowedHeaders : ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PATCH", "DELETE"],
+  credentials: false //not using cookies
 }));
 
 
