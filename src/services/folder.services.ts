@@ -7,6 +7,24 @@ interface CreateFolderDto {
   parentId?: number | null;
 }
 
+export const findFolderByNameAndParent = async (
+  name: string,
+  parentId: number | null,
+  userId: number
+) => {
+  try {
+    return await prisma.folder.findFirst({
+      where: {
+        name: name,
+        parentId: parentId,
+        userId: userId,
+      },
+    });
+  } catch (error) {
+      throw new StorageError("DATABASE_ERROR", "Failed to check for folder uniqueness");
+  }
+};
+
 export const createFolder = async (data: CreateFolderDto) => {
   try {
     return await prisma.folder.create({
