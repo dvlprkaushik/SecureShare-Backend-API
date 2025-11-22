@@ -4,9 +4,13 @@ declare global {
   namespace Express {
     interface Request {
       userId: number;
-      validated?: any;
+      validated?: {
+        body?: any;
+        params?: any;
+        query?: any;
+      };
     }
   }
 }
 
-export {};
+export { };
