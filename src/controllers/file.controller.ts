@@ -29,7 +29,10 @@ export const uploadFile = async (
       filename: req.file.originalname,
       mimeType: req.file.mimetype,
       sizeKB: Math.ceil(upload_result.bytes / 1024),
-      cloudUrl: upload_result.secure_url,
+
+      // fix: removed permanent cloudUrl because private uploads must not expose static URL
+      // cloudUrl: upload_result.secure_url,  <-- removed
+
       cloudPublicId: upload_result.public_id,
       userId: req.userId,
       folderId: folderId,
@@ -43,7 +46,10 @@ export const uploadFile = async (
         filename: saved.filename,
         mimeType: saved.mimeType,
         sizeKB: saved.sizeKB,
-        cloudUrl: saved.cloudUrl,
+
+        // fix: removed cloudUrl from response to avoid exposing permanent URL
+        // cloudUrl: saved.cloudUrl,  <-- removed
+
         uploadedAt: saved.uploadedAt,
         folderId: saved.folderId,
       },
@@ -96,7 +102,10 @@ export const getFileById = async (
       filename: file.filename,
       mimeType: file.mimeType,
       sizeKB: file.sizeKB,
-      cloudUrl: file.cloudUrl,
+
+      // fix: removed cloudUrl from response because private uploads cannot expose static URL
+      // cloudUrl: file.cloudUrl, <-- removed
+
       uploadedAt: file.uploadedAt,
       folderId: file.folderId,
     });
@@ -158,7 +167,10 @@ export const moveFile = async (
         filename: updated.filename,
         mimeType: updated.mimeType,
         sizeKB: updated.sizeKB,
-        cloudUrl: updated.cloudUrl,
+
+        // fix: removed cloudUrl from response after move
+        // cloudUrl: updated.cloudUrl, <-- removed
+
         uploadedAt: updated.uploadedAt,
         folderId: updated.folderId,
       },
@@ -193,7 +205,10 @@ export const renameFile = async (
         filename: updated.filename,
         mimeType: updated.mimeType,
         sizeKB: updated.sizeKB,
-        cloudUrl: updated.cloudUrl,
+
+        // fix: removed cloudUrl from response after rename
+        // cloudUrl: updated.cloudUrl, <-- removed
+
         uploadedAt: updated.uploadedAt,
         folderId: updated.folderId,
       },

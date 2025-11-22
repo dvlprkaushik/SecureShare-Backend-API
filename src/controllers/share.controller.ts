@@ -2,12 +2,12 @@ import { NextFunction, Request, Response } from "express";
 import * as share_service from "@/services/share.services.js";
 import { sendSuccess } from "@/utils/ResponseUtils.js";
 import { serverConfig as scf } from "@/config/env.config.js";
-import { Files } from "@/services/file.services.js";
 import {
   GenerateShareInput,
   ShareTokenInput,
 } from "@/schemas/share.schema.js";
 import { FileIdInput } from "@/schemas/file.schema.js";
+import { signedUrlGenerate } from "@/services/cloudinary.services.js";
 
 export interface SafeShareDto {
   fileId: number;
@@ -58,20 +58,13 @@ export const accessSharedFile = async (
 
     const file = await share_service.accessSharedFile(token);
 
-    return sendSuccess<Files>(
-      res,
-      "File accessed via public link",
-      {
-        id: file.id,
-        filename: file.filename,
-        mimeType: file.mimeType,
-        sizeKB: file.sizeKB,
-        cloudUrl: file.cloudUrl,
-        uploadedAt: file.uploadedAt,
-        folderId: file.folderId,
-      },
-      200
-    );
+    // fix: generate signed Cloudinary URL for temporary access
+    const expiresAtUnix = Math.floor(new Date(file.shareExpiry!).getTime() / 1000);
+    const signedUrl = await signedUrlGenerate(file.cloudPublicId,expiresAtUnix);
+
+    console.log(signedUrl);
+    // fix: redirecting user to signed URL instead of returning JSON with cloudUrl
+    return res.redirect(signedUrl);
   } catch (error) {
     next(error);
   }
