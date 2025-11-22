@@ -8,6 +8,9 @@ const folderRouter = Router();
 
 folderRouter.route("/").post(authMiddleware,validateBody(createFolderSchema), folderController.createFolder).get(authMiddleware, folderController.getFolders);
 
-folderRouter.get("/:folderId", authMiddleware,validateParams(folderIdSchema), folderController.getFolderById);
+folderRouter.get("/:folderId", authMiddleware, validateParams(folderIdSchema), folderController.getFolderById);
+
+// NEW DELETE ROUTE
+folderRouter.delete("/:folderId", authMiddleware, validateParams(folderIdSchema), folderController.deleteFolderById);
 
 export {folderRouter};
