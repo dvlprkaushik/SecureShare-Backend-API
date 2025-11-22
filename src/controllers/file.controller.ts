@@ -32,7 +32,7 @@ export const uploadFile = async (
 
       // fix: removed permanent cloudUrl because private uploads must not expose static URL
       // cloudUrl: upload_result.secure_url,  <-- removed
-
+      cloudVersion : upload_result.version,
       cloudPublicId: upload_result.public_id,
       userId: req.userId,
       folderId: folderId,

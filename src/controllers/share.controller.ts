@@ -7,7 +7,7 @@ import {
   ShareTokenInput,
 } from "@/schemas/share.schema.js";
 import { FileIdInput } from "@/schemas/file.schema.js";
-import { signedUrlGenerate } from "@/services/cloudinary.services.js";
+import { getViewableResourceType, signedUrlGenerate } from "@/services/cloudinary.services.js";
 
 export interface SafeShareDto {
   fileId: number;
@@ -58,11 +58,14 @@ export const accessSharedFile = async (
 
     const file = await share_service.accessSharedFile(token);
 
-    // fix: generate signed Cloudinary URL for temporary access
     const expiresAtUnix = Math.floor(new Date(file.shareExpiry!).getTime() / 1000);
-    const signedUrl = await signedUrlGenerate(file.cloudPublicId,expiresAtUnix);
 
-    console.log(signedUrl);
+    // using the existing mimeType field from DB
+    const resourceType = getViewableResourceType(file.mimeType);
+
+    // fix: generate signed Cloudinary URL for temporary access
+    const signedUrl = await signedUrlGenerate(file.cloudPublicId,file.cloudVersion!, expiresAtUnix, resourceType);
+    
     // fix: redirecting user to signed URL instead of returning JSON with cloudUrl
     return res.redirect(signedUrl);
   } catch (error) {

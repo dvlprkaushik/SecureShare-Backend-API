@@ -3,6 +3,13 @@ import streamifier from "streamifier";
 import type { UploadApiResponse } from "cloudinary";
 import { StorageError } from "@/utils/StorageError.js";
 
+export const getViewableResourceType = (mimeType: string): "image" | "video" | "raw" => {
+  if (mimeType.startsWith('image/')) return 'image';
+  if (mimeType === 'application/pdf') return 'image';
+  if (mimeType.startsWith('video/')) return 'video';
+  return 'raw';
+};
+
 export const uploadToCloudinary = (
   file: Express.Multer.File
 ): Promise<UploadApiResponse> => {
@@ -16,8 +23,8 @@ export const uploadToCloudinary = (
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         resource_type: "auto",
-        type : "private",
-        folder : 'SecureShareRoot'
+        type: "private",
+        folder: "SecureShareRoot"
       },
       (error: any, result: UploadApiResponse | undefined) => {
         if (error) return reject(error);
@@ -39,13 +46,19 @@ export const uploadToCloudinary = (
   });
 };
 
-export const signedUrlGenerate = async (cloudPublicId : string, expiresAtUnix : number) => {
+export const signedUrlGenerate = async (
+  cloudPublicId: string,
+  cloudVersion: number,
+  expiresAtUnix: number,
+  resourceType : string,
+) => {
   return cloudinary.url(cloudPublicId, {
     type: "private",
-    resource_type: "auto",
+    resource_type: resourceType,
     sign_url: true,
     expires_at: expiresAtUnix,
-  })
+    version: cloudVersion
+  });
 };
 
 export const deleteFromCloudinary = async (

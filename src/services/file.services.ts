@@ -7,7 +7,7 @@ export interface Metadata {
   filename: string;
   mimeType: string;
   sizeKB: number;
-
+  cloudVersion? : number;
   // fix: removed cloudUrl because private Cloudinary uploads don't expose static URLs
   // cloudUrl: string;
 
@@ -27,6 +27,7 @@ export const createFileMetadata = async (data: Metadata) => {
       filename,
       mimeType,
       cloudPublicId,
+      cloudVersion,
       sizeKB,
       userId,
       folderId,
@@ -42,6 +43,7 @@ export const createFileMetadata = async (data: Metadata) => {
         filename,
         mimeType,
         cloudPublicId,
+        cloudVersion : cloudVersion,
         sizeKB,
         userid: userId,
         folderId: folderId,
