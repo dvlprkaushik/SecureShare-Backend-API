@@ -76,15 +76,6 @@ export const findFilesByFolder = async (folderId : number , userId : number) =>{
         folderId : folderId,
         userid : userId
       },
-      select: {
-        id: true,
-        filename: true,
-        mimeType: true,
-        sizeKB: true,
-        cloudUrl: true,
-        uploadedAt: true,
-        folderId: true,
-      },
       orderBy: { uploadedAt: "desc" }
     });
   } catch (error) {

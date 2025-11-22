@@ -151,7 +151,6 @@ export const getFolderById = async (
       filename: f.filename,
       mimeType: f.mimeType,
       sizeKB: f.sizeKB,
-      cloudUrl: f.cloudUrl,
       uploadedAt: f.uploadedAt,
       folderId: f.folderId,
     }));
