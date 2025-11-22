@@ -64,8 +64,8 @@ export const accessSharedFile = async (
     const resourceType = getViewableResourceType(file.mimeType);
 
     // fix: generate signed Cloudinary URL for temporary access
-    const signedUrl = await signedUrlGenerate(file.cloudPublicId,file.cloudVersion!, expiresAtUnix, resourceType);
-    
+    const signedUrl = await signedUrlGenerate(file.cloudPublicId,expiresAtUnix, file.cloudVersion, resourceType);
+
     // fix: redirecting user to signed URL instead of returning JSON with cloudUrl
     return res.redirect(signedUrl);
   } catch (error) {

@@ -48,8 +48,8 @@ export const uploadToCloudinary = (
 
 export const signedUrlGenerate = async (
   cloudPublicId: string,
-  cloudVersion: number,
   expiresAtUnix: number,
+  cloudVersion: number,
   resourceType : string,
 ) => {
   return cloudinary.url(cloudPublicId, {

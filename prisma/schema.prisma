@@ -44,7 +44,7 @@ model FileMetaData{
   // cloudUrl String
 
   cloudPublicId String @unique
-  cloudVersion Int?
+  cloudVersion Int @default(0)
   uploadedAt DateTime @default(now())
   folderId Int?
   userid Int

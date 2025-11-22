@@ -7,7 +7,7 @@ export interface Metadata {
   filename: string;
   mimeType: string;
   sizeKB: number;
-  cloudVersion? : number;
+  cloudVersion : number;
   // fix: removed cloudUrl because private Cloudinary uploads don't expose static URLs
   // cloudUrl: string;
 
