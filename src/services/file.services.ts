@@ -7,7 +7,10 @@ export interface Metadata {
   filename: string;
   mimeType: string;
   sizeKB: number;
-  cloudUrl: string;
+
+  // fix: removed cloudUrl because private Cloudinary uploads don't expose static URLs
+  // cloudUrl: string;
+
   cloudPublicId: string;
   userId: number;
   folderId?: number | null;
@@ -18,7 +21,9 @@ export interface Metadata {
 export const createFileMetadata = async (data: Metadata) => {
   try {
     const {
-      cloudUrl,
+      // fix: removed cloudUrl
+      // cloudUrl,
+
       filename,
       mimeType,
       cloudPublicId,
@@ -28,9 +33,12 @@ export const createFileMetadata = async (data: Metadata) => {
       shareExpiry,
       shareToken,
     } = data;
+
     const record = await prisma.fileMetaData.create({
       data: {
-        cloudUrl,
+        // fix: removed cloudUrl from DB write
+        // cloudUrl,
+
         filename,
         mimeType,
         cloudPublicId,
@@ -51,7 +59,6 @@ export const createFileMetadata = async (data: Metadata) => {
   }
 };
 
-// All fields are optional because query parameters in GET requests are not guaranteed to be present
 export const fileFiltersQuerySchema = z.object({
   mimeType: z.string().optional(),
   folderId: z.coerce.number().int().nonnegative().optional().nullable(),
@@ -61,12 +68,12 @@ export const fileFiltersQuerySchema = z.object({
 
 export type FileFilters = z.infer<typeof fileFiltersQuerySchema>;
 
+// fix: removed cloudUrl from Files type since private uploads don't expose static URLs
 export type Files = {
   id: number;
   filename: string;
   mimeType: string;
   sizeKB: number;
-  cloudUrl: string;
   uploadedAt: Date;
   folderId: number | null;
 };
@@ -216,35 +223,39 @@ export const moveFileToFolder = async (
 
   try {
     const updatedFile = await prisma.fileMetaData.update({
-      where : {id : fileId},
-      data : {
-        folderId : folderId ?? null
-      }
-    })
+      where: { id: fileId },
+      data: {
+        folderId: folderId ?? null,
+      },
+    });
 
     return updatedFile;
   } catch (error) {
-    throw new StorageError("DATABASE_ERROR","Failed to move file");
+    throw new StorageError("DATABASE_ERROR", "Failed to move file");
   }
 };
 
-export const renameFileById = async (fileId : number, newFileName : string, userId : number) =>{
+export const renameFileById = async (
+  fileId: number,
+  newFileName: string,
+  userId: number
+) => {
   const file = await findFileById(fileId);
 
-  if(file.userid !== userId){
-    throw new StorageError("ACCESS_DENIED","You do not down this file");
+  if (file.userid !== userId) {
+    throw new StorageError("ACCESS_DENIED", "You do not down this file");
   }
 
   try {
     const updated = await prisma.fileMetaData.update({
-      where : {id : fileId},
-      data : {
-        filename : newFileName
-      }
+      where: { id: fileId },
+      data: {
+        filename: newFileName,
+      },
     });
 
     return updated;
   } catch (error) {
-    throw new StorageError("DATABASE_ERROR","Failed to rename file");
+    throw new StorageError("DATABASE_ERROR", "Failed to rename file");
   }
-}
+};

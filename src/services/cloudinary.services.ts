@@ -14,7 +14,11 @@ export const uploadToCloudinary = (
     }
 
     const uploadStream = cloudinary.uploader.upload_stream(
-      { resource_type: "auto" },
+      {
+        resource_type: "auto",
+        type : "private",
+        folder : 'SecureShareRoot'
+      },
       (error: any, result: UploadApiResponse | undefined) => {
         if (error) return reject(error);
 
@@ -33,6 +37,15 @@ export const uploadToCloudinary = (
       .on("error", reject)
       .pipe(uploadStream);
   });
+};
+
+export const signedUrlGenerate = async (cloudPublicId : string, expiresAtUnix : number) => {
+  return cloudinary.url(cloudPublicId, {
+    type: "private",
+    resource_type: "auto",
+    sign_url: true,
+    expires_at: expiresAtUnix,
+  })
 };
 
 export const deleteFromCloudinary = async (
