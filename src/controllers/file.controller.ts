@@ -19,7 +19,7 @@ export const uploadFile = async (
     if (!req.file || !req.file.buffer) {
       return next(new StorageError("NO_FILE"));
     }
-    const { folderId } = req.validated as FileUploadInput;
+    const { folderId } = req.validated?.body as FileUploadInput;
 
     await file_service.validateFolderOwnership(folderId ?? null, req.userId);
 
@@ -60,7 +60,7 @@ export const getFiles = async (
   next: NextFunction
 ) => {
   try {
-    const { mimeType, folderId, limit, page } = req.validated as file_service.FileFilters;
+    const { mimeType, folderId, limit, page } = req.validated?.query as file_service.FileFilters;
 
     const files_result = await file_service.getUserFiles(req.userId, {
       folderId: folderId,
@@ -81,7 +81,7 @@ export const getFileById = async (
   next: NextFunction
 ) => {
   try {
-    const { fileId } = req.validated as FileIdInput;
+    const { fileId } = req.validated?.params as FileIdInput;
 
     const file = await file_service.findFileById(fileId);
 
@@ -111,7 +111,7 @@ export const deleteFile = async (
   next: NextFunction
 ) => {
   try {
-    const { fileId } = req.validated as FileIdInput;
+    const { fileId } = req.validated?.params as FileIdInput;
     const file = await file_service.findFileById(fileId);
 
     if (!file) {
@@ -140,8 +140,8 @@ export const moveFile = async (
   next: NextFunction
 ) => {
   try {
-    const { fileId } = req.validated as FileIdInput;
-    const { folderId } = req.validated as MoveFileInput;
+    const { fileId } = req.validated?.params as FileIdInput;
+    const { folderId } = req.validated?.body as MoveFileInput;
     const userId = req.userId;
 
     const updated = await file_service.moveFileToFolder(
@@ -175,8 +175,8 @@ export const renameFile = async (
   next: NextFunction
 ) => {
   try {
-    const { fileId } = req.validated as FileIdInput;
-    const { filename } = req.validated as RenameFileInput;
+    const { fileId } = req.validated?.params as FileIdInput;
+    const { filename } = req.validated?.body as RenameFileInput;
     const userId = req.userId;
 
     const updated = await file_service.renameFileById(

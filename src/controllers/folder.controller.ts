@@ -18,7 +18,7 @@ export const createFolder = async (
   next: NextFunction
 ) => {
   try {
-    const { folderName, parentId } = req.validated as CreateFolderInput;
+    const { folderName, parentId } = req.validated?.body as CreateFolderInput;
     const parentIdNumber = parentId ?? null;
 
     if (parentIdNumber !== null) {
@@ -32,6 +32,20 @@ export const createFolder = async (
           new StorageError("ACCESS_DENIED", "You do not own this folder")
         );
       }
+    }
+
+    // NEW: DUPLICATE NAME CHECK
+    const existingFolder = await folder_service.findFolderByNameAndParent(
+      folderName,
+      parentIdNumber,
+      req.userId
+    );
+
+    if (existingFolder) {
+      return next(
+        new StorageError("VALIDATION_ERROR",
+          `A folder named '${folderName}' already exists in this location.`)
+      );
     }
 
     const folder = await folder_service.createFolder({
@@ -94,7 +108,7 @@ export const getFolderById = async (
   next: NextFunction
 ) => {
   try {
-    const { folderId } = req.validated as FolderIdInput;
+    const { folderId } = req.validated?.params as FolderIdInput;
 
     const rawFolder = await folder_service.findFolderById(folderId);
 
@@ -152,3 +166,17 @@ export const getFolderById = async (
     next(error);
   }
 };
+
+export const deleteFolderById = async (req : Request, res : Response, next : NextFunction) =>{
+  try {
+    const {folderId} = req.validated?.params as FolderIdInput;
+
+    const userId = req.userId;
+
+    await folder_service.deleteFolderById(folderId,userId);
+
+    return sendSuccess(res,"Folder and all contents deleted successfully",null, 200);
+  } catch (error) {
+    next(error);
+  }
+}

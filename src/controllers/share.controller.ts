@@ -22,7 +22,7 @@ export const generateShareLink = async (
   next: NextFunction
 ) => {
   try {
-    const { fileId, expiryHours } = req.validated as GenerateShareInput;
+    const { fileId, expiryHours } = req.validated?.body as GenerateShareInput;
 
     const userId = req.userId;
 
@@ -54,7 +54,7 @@ export const accessSharedFile = async (
   next: NextFunction
 ) => {
   try {
-    const { token } = req.validated as ShareTokenInput;
+    const { token } = req.validated?.params as ShareTokenInput;
 
     const file = await share_service.accessSharedFile(token);
 
@@ -83,7 +83,7 @@ export const revokeShareLink = async (
   next: NextFunction
 ) => {
   try {
-    const { fileId } = req.validated as FileIdInput;
+    const { fileId } = req.validated?.params as FileIdInput;
     const userId = req.userId;
 
     const { fileId: revokedFileId, revoked } =

@@ -16,7 +16,7 @@ export const registerUser = async (
   next: NextFunction
 ) => {
   try {
-    const { email, password } = req.validated as RegisterInput;
+    const { email, password } = req.validated?.body as RegisterInput;
 
     let user = await auth_services.findUserByEmail(email);
     if (user) {
@@ -46,7 +46,7 @@ export const login = async (
   next: NextFunction
 ) => {
   try {
-    const { email, password } = req.validated as LoginInput;
+    const { email, password } = req.validated?.body as LoginInput;
 
     let user = await auth_services.findUserByEmail(email);
 
