@@ -91,3 +91,18 @@ export const findFilesByFolder = async (folderId : number , userId : number) =>{
     throw new StorageError("DATABASE_ERROR", "Failed to fetch files");
   }
 }
+
+// new addition
+export const deleteFolderById = async (folderId: number, userId: number) => {
+  try {
+    const deletedFolder = await prisma.folder.delete({
+      where: {
+        id: folderId,
+        userId: userId,
+      },
+    });
+    return deletedFolder;
+  } catch (error: any) {
+    throw new StorageError("DATABASE_ERROR", "Failed to delete folder and contents.");
+  }
+};
