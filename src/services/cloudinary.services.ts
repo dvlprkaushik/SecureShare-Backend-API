@@ -3,11 +3,10 @@ import streamifier from "streamifier";
 import type { UploadApiResponse } from "cloudinary";
 import { StorageError } from "@/utils/StorageError.js";
 
-export const getViewableResourceType = (mimeType: string): "image" | "video" | "raw" => {
-  if (mimeType.startsWith('image/')) return 'image';
-  if (mimeType === 'application/pdf') return 'image';
+export const getViewableResourceType = (mimeType: string): "image" | "video" => {
+  if (mimeType.startsWith('image/') || mimeType === 'application/pdf') return 'image';
   if (mimeType.startsWith('video/')) return 'video';
-  return 'raw';
+  return "image";
 };
 
 export const uploadToCloudinary = (

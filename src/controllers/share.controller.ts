@@ -8,6 +8,7 @@ import {
 } from "@/schemas/share.schema.js";
 import { FileIdInput } from "@/schemas/file.schema.js";
 import { getViewableResourceType, signedUrlGenerate } from "@/services/cloudinary.services.js";
+import https from "https";
 
 export interface SafeShareDto {
   fileId: number;
@@ -22,9 +23,13 @@ export const generateShareLink = async (
   next: NextFunction
 ) => {
   try {
-    const { fileId, expiryHours } = req.validated?.body as GenerateShareInput;
-
+    const { fileId, expiryValue, expiryUnit } = req.validated?.body as GenerateShareInput;
     const userId = req.userId;
+
+    // convert user input to hours (service expects hours)
+    let expiryHours = expiryValue;
+    if (expiryUnit === "min") expiryHours = expiryValue / 60;
+    if (expiryUnit === "day") expiryHours = expiryValue * 24;
 
     const updated = await share_service.generateShareLink(
       fileId,
@@ -34,7 +39,7 @@ export const generateShareLink = async (
 
     return sendSuccess<SafeShareDto>(
       res,
-      "Share link generated successfully",
+      "Share link generated",
       {
         fileId: updated.id,
         shareUrl: `${scf.BASE_URL}/api/v1/share/${updated.shareToken}`,
@@ -58,16 +63,32 @@ export const accessSharedFile = async (
 
     const file = await share_service.accessSharedFile(token);
 
-    const expiresAtUnix = Math.floor(new Date(file.shareExpiry!).getTime() / 1000);
+    const expiresAtUnix = Math.floor(
+      new Date(file.shareExpiry!).getTime() / 1000
+    );
 
-    // using the existing mimeType field from DB
     const resourceType = getViewableResourceType(file.mimeType);
 
-    // fix: generate signed Cloudinary URL for temporary access
-    const signedUrl = await signedUrlGenerate(file.cloudPublicId,expiresAtUnix, file.cloudVersion, resourceType);
+    const signedUrl = await signedUrlGenerate(
+      file.cloudPublicId,
+      expiresAtUnix,
+      file.cloudVersion,
+      resourceType
+    );
 
-    // fix: redirecting user to signed URL instead of returning JSON with cloudUrl
-    return res.redirect(signedUrl);
+    // inline preview, no cache
+    res.setHeader("Content-Type", file.mimeType);
+    res.setHeader("Cache-Control", "no-store");
+
+    https
+      .get(signedUrl, (cloudRes) => {
+        cloudRes.pipe(res);
+      })
+      .on("error", () => {
+        if (!res.headersSent)
+          return res.status(500).json({ error: "Failed to fetch asset" });
+        res.end();
+      });
   } catch (error) {
     next(error);
   }
@@ -87,10 +108,10 @@ export const revokeShareLink = async (
 
     return sendSuccess<{ fileId: number; revoked: boolean }>(
       res,
-      "Share link revoked successfully",
+      "Share link revoked",
       {
         fileId: revokedFileId,
-        revoked: revoked,
+        revoked,
       }
     );
   } catch (error) {
