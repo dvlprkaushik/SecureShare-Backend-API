@@ -2,20 +2,15 @@ import { prisma } from "@/utils/prisma.js";
 import { StorageError } from "@/utils/StorageError.js";
 import { findFolderById } from "./folder.services.js";
 import { z } from "zod/v4";
+import { deleteFromS3 } from "./s3.services.js";
 
 export interface Metadata {
   filename: string;
   mimeType: string;
   sizeKB: number;
-  cloudVersion : number;
-  // fix: removed cloudUrl because private Cloudinary uploads don't expose static URLs
-  // cloudUrl: string;
-
-  cloudPublicId: string;
+  fileKey: string;
   userId: number;
   folderId?: number | null;
-  shareToken?: string | null;
-  shareExpiry?: Date | null;
 }
 
 export const createFileMetadata = async (data: Metadata) => {
@@ -26,29 +21,20 @@ export const createFileMetadata = async (data: Metadata) => {
 
       filename,
       mimeType,
-      cloudPublicId,
-      cloudVersion,
       sizeKB,
+      fileKey,
       userId,
       folderId,
-      shareExpiry,
-      shareToken,
     } = data;
 
     const record = await prisma.fileMetaData.create({
       data: {
-        // fix: removed cloudUrl from DB write
-        // cloudUrl,
-
         filename,
         mimeType,
-        cloudPublicId,
-        cloudVersion : cloudVersion,
         sizeKB,
+        fileKey,
         userid: userId,
-        folderId: folderId,
-        shareExpiry: shareExpiry,
-        shareToken: shareToken,
+        folderId,
       },
     });
 
@@ -179,8 +165,14 @@ export const validateFolderOwnership = async (
   }
 };
 
-export const deleteFileById = async (fileId: number) => {
+export const deleteFileById = async (fileId: number, userId: number) => {
+  const file = await findFileById(fileId);
+
+  if (file.userid !== userId) {
+    throw new StorageError("ACCESS_DENIED", "You do not own this file");
+  }
   try {
+    await deleteFromS3(file.fileKey);
     await prisma.fileMetaData.delete({
       where: { id: fileId },
     });

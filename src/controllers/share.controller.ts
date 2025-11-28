@@ -7,8 +7,7 @@ import {
   ShareTokenInput,
 } from "@/schemas/share.schema.js";
 import { FileIdInput } from "@/schemas/file.schema.js";
-import { getViewableResourceType, signedUrlGenerate } from "@/services/cloudinary.services.js";
-import https from "https";
+import * as s3_service from "@/services/s3.services.js";
 
 export interface SafeShareDto {
   fileId: number;
@@ -63,32 +62,17 @@ export const accessSharedFile = async (
 
     const file = await share_service.accessSharedFile(token);
 
-    const expiresAtUnix = Math.floor(
-      new Date(file.shareExpiry!).getTime() / 1000
-    );
+    // short lived only
+    const preSignedUrl = await s3_service.getPresignedDownloadURL(file.fileKey);
 
-    const resourceType = getViewableResourceType(file.mimeType);
-
-    const signedUrl = await signedUrlGenerate(
-      file.cloudPublicId,
-      expiresAtUnix,
-      file.cloudVersion,
-      resourceType
-    );
-
-    // inline preview, no cache
-    res.setHeader("Content-Type", file.mimeType);
-    res.setHeader("Cache-Control", "no-store");
-
-    https
-      .get(signedUrl, (cloudRes) => {
-        cloudRes.pipe(res);
-      })
-      .on("error", () => {
-        if (!res.headersSent)
-          return res.status(500).json({ error: "Failed to fetch asset" });
-        res.end();
-      });
+    return sendSuccess(res, "File access granted", {
+      fileId: file.id,
+      filename: file.filename,
+      mimeType: file.mimeType,
+      sizeKB: file.sizeKB,
+      expiresAt: file.shareExpiry,
+      downloadUrl: preSignedUrl,
+    })
   } catch (error) {
     next(error);
   }

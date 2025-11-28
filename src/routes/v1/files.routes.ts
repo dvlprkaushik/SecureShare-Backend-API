@@ -1,6 +1,5 @@
 import * as fileController from "@/controllers/file.controller.js";
 import { authMiddleware } from "@/middleware/auth.middleware.js";
-import { upload } from "@/middleware/multer.middleware.js";
 import { validateBody, validateParams, validateQuery } from "@/middleware/validation.middleware.js";
 import { fileIdSchema, fileUploadSchema, moveFileSchema, renameFileSchema } from "@/schemas/file.schema.js";
 import { fileFiltersQuerySchema } from "@/services/file.services.js";
@@ -11,7 +10,8 @@ const fileRouter = Router();
 const moveHandler = [validateParams(fileIdSchema), validateBody(moveFileSchema)];
 const renameHandler = [validateParams(fileIdSchema), validateBody(renameFileSchema)];
 
-fileRouter.post("/upload", authMiddleware, upload.single("file"), validateBody(fileUploadSchema), fileController.uploadFile);
+fileRouter.post("/presign", authMiddleware, validateBody(fileUploadSchema), fileController.getUploadUrl);
+fileRouter.post("/complete", authMiddleware, validateBody(fileUploadSchema), fileController.saveFileMetadata);
 fileRouter.get("/", authMiddleware, validateQuery(fileFiltersQuerySchema), fileController.getFiles);
 fileRouter.get("/:fileId", authMiddleware, validateParams(fileIdSchema), fileController.getFileById);
 fileRouter.delete("/:fileId", authMiddleware, validateParams(fileIdSchema), fileController.deleteFile);

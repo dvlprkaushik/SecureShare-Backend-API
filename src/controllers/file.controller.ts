@@ -3,53 +3,75 @@ import {
   FileUploadInput,
   MoveFileInput,
   RenameFileInput,
+  SaveFileInput,
 } from "@/schemas/file.schema.js";
-import * as cloud_service from "@/services/cloudinary.services.js";
 import * as file_service from "@/services/file.services.js";
+import {
+  generateFileKey,
+  getPresignedUploadURL,
+  deleteFromS3,
+} from "@/services/s3.services.js";
 import { sendSuccess } from "@/utils/ResponseUtils.js";
 import { StorageError } from "@/utils/StorageError.js";
 import { NextFunction, Request, Response } from "express";
 
-export const uploadFile = async (
+export const getUploadUrl = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    if (!req.file || !req.file.buffer) {
-      return next(new StorageError("NO_FILE"));
-    }
-    const { folderId } = req.validated?.body as FileUploadInput;
+    const { folderId, filename, mimeType } = req.validated
+      ?.body as FileUploadInput;
 
     await file_service.validateFolderOwnership(folderId ?? null, req.userId);
 
-    const upload_result = await cloud_service.uploadToCloudinary(req.file);
+    const fileKey = generateFileKey(req.userId, filename);
+    const uploadUrl = await getPresignedUploadURL(fileKey, mimeType);
+
+    return sendSuccess(
+      res,
+      "Upload URL generated",
+      {
+        fileKey,
+        uploadUrl, // frontend uses this to PUT file to S3
+      },
+      201
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+// storing metadata after uploading
+export const saveFileMetadata = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { fileKey, filename, mimeType, sizeKB, folderId } =
+      req.validated?.body as SaveFileInput;
+
+    await file_service.validateFolderOwnership(folderId ?? null, req.userId);
 
     const saved = await file_service.createFileMetadata({
-      filename: req.file.originalname,
-      mimeType: req.file.mimetype,
-      sizeKB: Math.ceil(upload_result.bytes / 1024),
-
-      // fix: removed permanent cloudUrl because private uploads must not expose static URL
-      // cloudUrl: upload_result.secure_url,  <-- removed
-      cloudVersion : upload_result.version,
-      cloudPublicId: upload_result.public_id,
+      filename,
+      mimeType,
+      sizeKB,
+      fileKey,
       userId: req.userId,
-      folderId: folderId,
+      folderId,
     });
 
     return sendSuccess<file_service.Files>(
       res,
-      "File uploaded successfully",
+      "File metadata stored",
       {
         id: saved.id,
         filename: saved.filename,
         mimeType: saved.mimeType,
         sizeKB: saved.sizeKB,
-
-        // fix: removed cloudUrl from response to avoid exposing permanent URL
-        // cloudUrl: saved.cloudUrl,  <-- removed
-
         uploadedAt: saved.uploadedAt,
         folderId: saved.folderId,
       },
@@ -66,16 +88,11 @@ export const getFiles = async (
   next: NextFunction
 ) => {
   try {
-    const { mimeType, folderId, limit, page } = req.validated?.query as file_service.FileFilters;
+    const filters = req.validated?.query as file_service.FileFilters;
+    const result = await file_service.getUserFiles(req.userId, filters);
 
-    const files_result = await file_service.getUserFiles(req.userId, {
-      folderId: folderId,
-      mimeType: mimeType,
-      page: page,
-      limit: limit,
-    });
-
-    return sendSuccess(res, "Files fetched successfully", files_result, 200);
+    // result already uses DTO (id, name, etc)
+    return sendSuccess(res, "Files fetched", result, 200);
   } catch (error) {
     next(error);
   }
@@ -97,18 +114,19 @@ export const getFileById = async (
       );
     }
 
-    return sendSuccess(res, "File fetched successfully", {
-      id: file.id,
-      filename: file.filename,
-      mimeType: file.mimeType,
-      sizeKB: file.sizeKB,
-
-      // fix: removed cloudUrl from response because private uploads cannot expose static URL
-      // cloudUrl: file.cloudUrl, <-- removed
-
-      uploadedAt: file.uploadedAt,
-      folderId: file.folderId,
-    });
+    return sendSuccess<file_service.Files>(
+      res,
+      "File fetched",
+      {
+        id: file.id,
+        filename: file.filename,
+        mimeType: file.mimeType,
+        sizeKB: file.sizeKB,
+        uploadedAt: file.uploadedAt,
+        folderId: file.folderId,
+      },
+      200
+    );
   } catch (error) {
     next(error);
   }
@@ -123,21 +141,17 @@ export const deleteFile = async (
     const { fileId } = req.validated?.params as FileIdInput;
     const file = await file_service.findFileById(fileId);
 
-    if (!file) {
-      return next(new StorageError("FILE_NOT_FOUND"));
-    }
-
     if (file.userid !== req.userId) {
-      return next(
-        new StorageError("ACCESS_DENIED", "You do not own this file")
-      );
+      return next(new StorageError("ACCESS_DENIED"));
     }
 
-    await cloud_service.deleteFromCloudinary(file.cloudPublicId);
+    // delete from s3 storage
+    await deleteFromS3(file.fileKey);
 
-    await file_service.deleteFileById(fileId);
+    // delete DB record
+    await file_service.deleteFileById(fileId, req.userId);
 
-    return sendSuccess(res, "File deleted successfully", null, 203);
+    return sendSuccess(res, "File deleted", null, 203);
   } catch (error) {
     next(error);
   }
@@ -151,26 +165,21 @@ export const moveFile = async (
   try {
     const { fileId } = req.validated?.params as FileIdInput;
     const { folderId } = req.validated?.body as MoveFileInput;
-    const userId = req.userId;
 
     const updated = await file_service.moveFileToFolder(
       folderId,
       fileId,
-      userId
+      req.userId
     );
 
-    sendSuccess<file_service.Files>(
+    return sendSuccess<file_service.Files>(
       res,
-      "File moved successfully",
+      "File moved",
       {
         id: updated.id,
         filename: updated.filename,
         mimeType: updated.mimeType,
         sizeKB: updated.sizeKB,
-
-        // fix: removed cloudUrl from response after move
-        // cloudUrl: updated.cloudUrl, <-- removed
-
         uploadedAt: updated.uploadedAt,
         folderId: updated.folderId,
       },
@@ -189,26 +198,21 @@ export const renameFile = async (
   try {
     const { fileId } = req.validated?.params as FileIdInput;
     const { filename } = req.validated?.body as RenameFileInput;
-    const userId = req.userId;
 
     const updated = await file_service.renameFileById(
       fileId,
       filename,
-      userId
+      req.userId
     );
 
-    sendSuccess<file_service.Files>(
+    return sendSuccess<file_service.Files>(
       res,
-      "File renamed successfully",
+      "File renamed",
       {
         id: updated.id,
         filename: updated.filename,
         mimeType: updated.mimeType,
         sizeKB: updated.sizeKB,
-
-        // fix: removed cloudUrl from response after rename
-        // cloudUrl: updated.cloudUrl, <-- removed
-
         uploadedAt: updated.uploadedAt,
         folderId: updated.folderId,
       },
