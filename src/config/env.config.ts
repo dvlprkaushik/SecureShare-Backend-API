@@ -28,5 +28,11 @@ export const serverConfig = {
 
   // Urls
   BASE_URL: process.env.BASE_URL,
-  FRONTEND_URL : process.env.FRONTEND_URL || "*"
+  FRONTEND_URL : process.env.FRONTEND_URL || "*",
+
+  // Aws s3
+  S3_SECRET_KEY: process.env.S3_SECRET_KEY,
+  S3_ACCESS_KEY: process.env.S3_ACCESS_KEY,
+  AWS_REGION: process.env.AWS_REGION,
+  S3_BUCKET: process.env.S3_BUCKET
 };
