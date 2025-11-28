@@ -15,6 +15,7 @@ model User{
   email String @unique
   password String
   createdAt DateTime @default(now())
+  avatarKey String?
   files  FileMetaData[]
   folders Folder[]
 }
