@@ -41,11 +41,9 @@ model FileMetaData{
   mimeType String
   sizeKB Int
 
-  // fix: removed cloudUrl because private files cannot expose static URLs
-  // cloudUrl String
+  // new addition for s3
+  fileKey String @default("FILE_KEY")
 
-  cloudPublicId String @unique
-  cloudVersion Int @default(0)
   uploadedAt DateTime @default(now())
   folderId Int?
   userid Int
