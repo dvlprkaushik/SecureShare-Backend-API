@@ -21,9 +21,24 @@ export const requestAvatarUploadUrl = async (req: Request, res: Response, next: 
   }
 };
 
-export const saveAvatar = async (req: Request, res: Response, next: NextFunction) => {
+export const saveAvatar = async (req : Request, res : Response, next : NextFunction) => {
   try {
     const { avatarKey } = req.validated?.body as AvatarCompleteInput;
+
+    if (!avatarKey.startsWith(`users/${req.userId}/`)) {
+      throw new StorageError("ACCESS_DENIED", "Invalid avatar key");
+    }
+
+    const fileExists = await s3Service.checkFileExists(avatarKey);
+    if(!fileExists){
+      throw new StorageError("FILE_NOT_FOUND", "Avatar file not uploaded to S3");
+    }
+    
+    const oldAvatarKey = await avatarService.getUserAvatarKey(req.userId);
+
+    if (oldAvatarKey && oldAvatarKey !== avatarKey) {
+      await s3Service.deleteFromS3(oldAvatarKey);
+    }
 
     const updated = await avatarService.updateAvatarKey(req.userId, avatarKey);
 
@@ -31,11 +46,12 @@ export const saveAvatar = async (req: Request, res: Response, next: NextFunction
       id: updated.id,
       email: updated.email,
       avatarKey: updated.avatarKey,
-    },201);
+    });
   } catch (err) {
     next(err);
   }
 };
+
 
 export const getAvatar = async (req: Request, res: Response, next: NextFunction) => {
   try {

@@ -2,6 +2,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3 } from "@/config/s3.config.js";
@@ -42,6 +43,23 @@ export const deleteFromS3 = async (key: string) => {
 
   await s3.send(command);
 };
+
+// New addition to check if file exists in s3 bucket already
+export const checkFileExists = async (key : string) : Promise<boolean> =>{
+  try {
+    const command = new HeadObjectCommand({
+      Bucket : BUCKET,
+      Key : key
+    });
+    await s3.send(command);
+    return true;
+  } catch (error) {
+    if(error){
+      throw error;
+    }
+    return false;
+  }
+}
 
 // File key generation
 export const generateFileKey = (

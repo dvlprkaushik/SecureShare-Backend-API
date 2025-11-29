@@ -12,11 +12,13 @@ import {
   avatarUploadSchema,
   avatarCompleteSchema
 } from "@/schemas/avatar.schema.js";
+import { avatarUploadLimiter } from "@/middleware/rateLimiter.middleware.js";
 
 const avatarRouter = Router();
 
 avatarRouter.post(
   "/upload-url",
+  avatarUploadLimiter,
   authMiddleware,
   validateBody(avatarUploadSchema),
   requestAvatarUploadUrl
