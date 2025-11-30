@@ -1,6 +1,6 @@
 # SecureShare Backend API
 
-A secure and scalable backend API for file sharing built with Node.js, Express, TypeScript, Prisma, and Cloudinary. Features file uploads, nested folder hierarchies, metadata management, file movement, and secure shareable links with expiration.
+A secure and scalable backend API for file sharing built with Node.js, Express, TypeScript, Prisma, and AWS S3. Features presigned URL uploads, nested folder hierarchies, metadata management, file movement, avatar management, and secure shareable links with expiration.
 
 Implements a clean controller-service architecture with strict validation, custom error handling, and consistent API responses.
 
@@ -11,16 +11,17 @@ Implements a clean controller-service architecture with strict validation, custo
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
-![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)
+![AWS S3](https://img.shields.io/badge/AWS_S3-FF9900?style=for-the-badge&logo=amazons3&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 
 ## Key Features
 
-- **Secure File Management:** Upload, retrieve, delete, move, and rename files
+- **Secure File Management:** Presigned URL uploads, retrieve, delete, move, and rename files
+- **AWS S3 Integration:** Scalable cloud storage with direct frontend-to-S3 uploads
+- **Avatar Management:** User profile picture uploads with dedicated S3 storage
 - **Nested Folder Hierarchy:** Create and manage multi-level folder structures
-- **Shareable Links:** Generate time-limited public links with expiration
+- **Shareable Links:** Generate time-limited public links with flexible expiration (minutes, hours, days)
 - **JWT Authentication:** Secure user authentication and authorization
-- **Cloud Storage:** Cloudinary integration for scalable file storage
 - **Type-Safe:** Full TypeScript implementation with Prisma ORM
 - **Error Handling:** Custom error classes with consistent API responses
 
@@ -28,8 +29,8 @@ Implements a clean controller-service architecture with strict validation, custo
 
 ```
 src/
-├── config/           # Cloudinary and environment configurations
-├── controllers/      # Request handlers (auth, file, folder, share)
+├── config/           # AWS S3 and environment configurations
+├── controllers/      # Request handlers (auth, file, folder, share, avatar)
 ├── services/         # Business logic layer
 ├── middleware/       # Auth, error handling, file upload, 404
 ├── routes/           # API route definitions (v1)
@@ -51,9 +52,9 @@ postman/
 
 Three core Prisma models:
 
-- **User:** Authentication and file ownership
+- **User:** Authentication, file ownership, and avatar storage
 - **Folder:** Self-referential nested hierarchy
-- **FileMetaData:** Cloudinary URLs, share tokens, and metadata
+- **FileMetaData:** S3 keys, share tokens, and metadata
 
 Full schema available in `/prisma/schema.prisma`
 
@@ -85,7 +86,7 @@ Returns package metadata (name, version, description, author, repo, license).
 {
   "name": "fileshare_backend_api",
   "version": "1.0.0",
-  "description": "A secure and scalable file-sharing backend API built with Express, TypeScript, Prisma, and Cloudinary. Supports file uploads, folder hierarchy, JWT auth, and shareable links with expiry.",
+  "description": "A secure and scalable file-sharing backend API built with Express, TypeScript, Prisma, and AWS S3. Supports presigned URL uploads, folder hierarchy, JWT auth, avatar management, and shareable links with expiry.",
   "author": "Kaushik <dvlprkaushik>",
   "repository": "https://github.com/dvlprkaushik/SecureShare-Backend-API.git",
   "license": "ISC"
@@ -115,10 +116,10 @@ Returns package metadata (name, version, description, author, repo, license).
 {
   "name": "secureshare-backend-api",
   "version": "1.0.0",
-  "description": "Secure file sharing API",
+  "description": "Secure file sharing API with AWS S3",
   "author": "Kaushik",
   "repository": "https://github.com/username/repo",
-  "license": "MIT"
+  "license": "ISC"
 }
 ```
 
@@ -141,20 +142,72 @@ All protected routes require `Authorization: Bearer <token>` header.
 
 ### File Routes
 
+#### Upload Workflow (3-Step Process)
+
+**Step 1: Generate Presigned URL**
+```
+POST /api/v1/files/presign
+```
+
+**Request:**
+```json
+{
+  "folderId": null,
+  "filename": "sample_image.png",
+  "mimeType": "image/png"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "statusCode": 201,
+  "message": "Presigned URL generated",
+  "data": {
+    "uploadUrl": "https://secure-share-buckets3.s3.ap-south-1.amazonaws.com/...",
+    "fileKey": "users/16/uploads/1764511646888_GawHt6UOHy_sample_image.png"
+  }
+}
+```
+
+**Step 2: Upload to S3 (Frontend)**
+```
+PUT <uploadUrl>
+Body: Binary file data
+```
+
+**Step 3: Save Upload**
+```
+POST /api/v1/files/complete
+```
+
+**Request:**
+```json
+{
+  "fileKey": "users/16/uploads/1764511646888_GawHt6UOHy_sample_image.png",
+  "filename": "sample_image.png",
+  "mimeType": "image/png",
+  "sizeKB": 186,
+  "folderId": null
+}
+```
+
+#### File Management Routes
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/v1/files/upload` | POST | Upload file (multipart/form-data) |
-| `/api/v1/files` | GET | List all user files |
+| `/api/v1/files/presign` | POST | Generate presigned S3 upload URL |
+| `/api/v1/files/complete` | POST | Save file metadata after upload |
+| `/api/v1/files` | GET | List all user files (paginated) |
 | `/api/v1/files/:fileId` | GET | Get file details |
 | `/api/v1/files/:fileId` | DELETE | Delete file permanently |
 | `/api/v1/files/:fileId/move` | PATCH | Move file to folder |
 | `/api/v1/files/:fileId/rename` | PATCH | Rename file |
 
-**Upload Request:**
+**List Files (Pagination):**
 ```
-Form Data:
-- file: <binary>
-- folderId: 10 (optional)
+GET /api/v1/files?page=1&limit=10
 ```
 
 **Move Request:**
@@ -167,7 +220,7 @@ Form Data:
 **Rename Request:**
 ```json
 {
-  "filename": "newname.png"
+  "newFileName": "updated_name.png"
 }
 ```
 
@@ -195,24 +248,108 @@ Form Data:
 | `/api/v1/share/:token` | GET | Access shared file (public, no auth) |
 | `/api/v1/share/:fileId/revoke` | DELETE | Revoke share link |
 
-**Generate Request:**
+**Generate Request (Flexible Expiry):**
 ```json
 {
-  "fileId": 12,
-  "expiryHours": 24
+  "fileId": 44,
+  "expiryValue": 1,
+  "expiryUnit": "min"
+}
+```
+
+Available units: `"min"` (minutes), `"hour"` (hours), `"day"` (days)
+
+**Generate Response:**
+```json
+{
+  "success": true,
+  "statusCode": 201,
+  "message": "Share link generated",
+  "data": {
+    "fileId": 44,
+    "shareUrl": "http://localhost:5000/api/v1/share/vtpD0A7tcNWK0HmhCc4mpxolSnDih-Fr",
+    "token": "vtpD0A7tcNWK0HmhCc4mpxolSnDih-Fr",
+    "expiresAt": "2025-11-30T17:50:35.468Z"
+  }
 }
 ```
 
 **Access Response:**
 ```json
 {
-  "id": 12,
-  "filename": "image.png",
-  "mimeType": "image/png",
-  "sizeKB": 482,
-  "cloudUrl": "https://cloudinary.com/...",
-  "uploadedAt": "2025-11-18T10:00:00.000Z",
-  "folderId": null
+  "success": true,
+  "statusCode": 200,
+  "message": "File accessed via public link",
+  "data": {
+    "id": 9,
+    "filename": "sample_api_image.png",
+    "mimeType": "image/png",
+    "sizeKB": 5,
+    "cloudUrl": "https://secure-share-buckets3.s3.amazonaws.com/...",
+    "uploadedAt": "2025-11-17T18:11:01.768Z",
+    "folderId": null
+  }
+}
+```
+
+### Avatar Routes
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/avatar/upload-url` | POST | Generate presigned URL for avatar upload |
+| `/api/v1/avatar/complete` | POST | Save avatar metadata after upload |
+| `/api/v1/avatar` | GET | Get user's avatar URL |
+
+**Avatar Upload Workflow:**
+
+**Step 1: Generate Presigned URL**
+```json
+POST /api/v1/avatar/upload-url
+{
+  "mimeType": "image/png"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "statusCode": 201,
+  "data": {
+    "avatarKey": "users/16/avatar.png",
+    "uploadUrl": "https://secure-share-buckets3.s3.ap-south-1.amazonaws.com/..."
+  }
+}
+```
+
+**Step 2: Upload to S3 (Frontend)**
+```
+PUT <uploadUrl>
+Body: Binary image data
+```
+
+**Step 3: Complete Avatar Upload**
+```json
+POST /api/v1/avatar/complete
+{
+  "avatarKey": "users/16/avatar.png"
+}
+```
+
+**Get Avatar:**
+```
+GET /api/v1/avatar
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Avatar fetched",
+  "data": {
+    "url": "https://secure-share-buckets3.s3.amazonaws.com/users/16/avatar.png"
+  }
 }
 ```
 
@@ -252,7 +389,7 @@ Form Data:
 }
 ```
 
-Handles: StorageError, MulterError, native JS errors, and unknown errors.
+Handles: StorageError, S3 errors, native JS errors, and unknown errors.
 
 ## Environment Variables
 
@@ -262,15 +399,16 @@ PORT=
 DATABASE_URL=
 JWT_SECRET=
 JWT_EXPIRES_IN=
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-CLOUDINARY_URL=
+S3_SECRET_KEY=
+S3_ACCESS_KEY=
+AWS_REGION=
+S3_BUCKET=
 MAX_FILE_SIZE_MB=
 ALLOWED_MIME_TYPES=
 MAX_JSON_SIZE_MB=
 BCRYPT_SALT_ROUNDS=
 BASE_URL=
+FRONTEND_URL=
 ```
 
 ## Installation & Setup
@@ -291,13 +429,20 @@ BASE_URL=
 3. **Environment Configuration:**
    - Create `.env` file in root directory
    - Add all required environment variables
+   - Configure AWS S3 credentials and bucket name
 
-4. **Development:**
+4. **AWS S3 Setup:**
+   - Create an S3 bucket in AWS Console
+   - Configure CORS policy for frontend uploads
+   - Set up IAM user with S3 access permissions
+   - Add credentials to `.env` file
+
+5. **Development:**
    ```bash
    npm run dev
    ```
 
-5. **Production Build:**
+6. **Production Build:**
    ```bash
    npm run build
    npm start
@@ -310,9 +455,10 @@ Import collection: `/postman/SecureShareAPI.postman_collection.json`
 **Collection Structure:**
 - Health_Check
 - Auth_Module
-- Files_Module
+- Files_Module (with presigned upload workflow)
 - Folders_Module
 - Share_Module
+- Avatar_Module (NEW)
 
 **Environment Variables:**
 - `base_url`: Server URL (e.g., `http://localhost:3000`)
@@ -336,26 +482,59 @@ npm install && npm run build
 node dist/index.js
 ```
 
-Add all environment variables in hosting dashboard.
+Add all environment variables in hosting dashboard, including AWS credentials.
 
-### Storage (Cloudinary)
-- No additional setup required
-- Works globally with API credentials
+### Storage (AWS S3)
+**Setup Steps:**
+1. Create S3 bucket in AWS Console
+2. Configure bucket CORS policy:
+```json
+[
+  {
+    "AllowedOrigins": ["*"] or ["http://your-frontend-domain.com"],
+    "AllowedMethods": ["GET", "PUT", "POST", "DELETE"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag"]
+  }
+]
+```
+3. Create IAM user with `your_custom_policy` policy (S3 access with only necessary permissions getObject, putObject, deleteObject)
+4. Generate access keys and add to environment variables
 
 ## Architecture Highlights
 
 - **Controller-Service Pattern:** Separation of concerns
+- **Presigned URLs:** Secure direct-to-S3 uploads without exposing credentials
 - **Custom Error Classes:** Type-safe error handling
 - **Middleware Pipeline:** Authentication, validation, error handling
 - **Prisma ORM:** Type-safe database queries
 - **JWT Authentication:** Secure token-based auth
-- **Cloudinary Integration:** Scalable cloud storage
+- **AWS S3 Integration:** Scalable cloud storage with SDK v3
+
+## Key Changes from Previous Version
+
+### ✅ AWS S3 SDK Integration
+- **Replaced Cloudinary** with AWS S3 for file storage
+- Implemented presigned URL upload workflow
+- Direct frontend-to-S3 uploads for better performance and scalability
+
+### ✅ New Avatar Module
+- Dedicated avatar management system
+- Separate S3 storage path for user avatars
+- Three-step upload process (presign → upload → complete)
+
+### ✅ Enhanced File Upload Flow
+- **Old:** Direct multipart upload via backend
+- **New:** Presigned URL generation → Frontend uploads to S3 → Backend saves metadata
+- Reduced server load and improved upload speeds
+
+### ✅ Flexible Share Link Expiry
+- Support for multiple time units: minutes, hours, days
+- More granular control over link expiration
 
 ## Author
 
 **Kaushik**
-Backend Developer specializing in Node.js, TypeScript, and API design
+Backend Developer specializing in Node.js, TypeScript, and Cloud Architecture
 
 ---
-
-Built with best practices for production-ready applications.
