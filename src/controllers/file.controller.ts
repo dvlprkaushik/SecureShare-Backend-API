@@ -151,7 +151,7 @@ export const deleteFile = async (
     // delete DB record
     await file_service.deleteFileById(fileId, req.userId);
 
-    return sendSuccess(res, "File deleted", null, 203);
+    return sendSuccess(res, "File deleted", null, 204);
   } catch (error) {
     next(error);
   }

@@ -423,7 +423,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"newFileName\" : \"sample_api_image.png\"\r\n}",
+							"raw": "{\r\n    \"newFilename\" : \"sample_api_image.png\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -441,7 +441,7 @@
 								"rename"
 							]
 						},
-						"description": "Renames a file by its fileId. Expects a JSON body with the new file name (\"newFileName\"). Returns a success message and updated file details upon successful rename."
+						"description": "Renames a file by its fileId. Expects a JSON body with the new file name (\"newFilename\"). Returns a success message and updated file details upon successful rename."
 					},
 					"response": []
 				}

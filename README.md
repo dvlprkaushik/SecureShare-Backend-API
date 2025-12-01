@@ -220,7 +220,7 @@ GET /api/v1/files?page=1&limit=10
 **Rename Request:**
 ```json
 {
-  "filename": "updated_name.png"
+  "newFilename": "updated_name.png"
 }
 ```
 
@@ -538,4 +538,3 @@ Add all environment variables in hosting dashboard, including AWS credentials.
 Backend Developer specializing in Node.js, TypeScript, and Cloud Architecture
 
 ---
-                               
