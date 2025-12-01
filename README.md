@@ -220,7 +220,7 @@ GET /api/v1/files?page=1&limit=10
 **Rename Request:**
 ```json
 {
-  "newFileName": "updated_name.png"
+  "filename": "updated_name.png"
 }
 ```
 
