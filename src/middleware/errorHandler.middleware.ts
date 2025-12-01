@@ -1,3 +1,4 @@
+import { serverConfig } from "@/config/env.config.js";
 import { StorageError } from "@/utils/StorageError.js";
 import { ErrorRequestHandler, Response } from "express";
 import { MulterError } from "multer";
@@ -24,6 +25,10 @@ const errorResponder = (
 
 export const errorhandler: ErrorRequestHandler = (err, req, res, _next) => {
   // ZodError
+  if(serverConfig.NODE_ENV === "development"){
+    console.log(err);
+  }
+  
   if (err instanceof ZodError) {
     return errorResponder(
       res,

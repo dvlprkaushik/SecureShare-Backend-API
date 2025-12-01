@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const createFolderSchema = z.strictObject({
   folderName: z.string().trim().min(1, 'Invalid folder name'),
-  parentId: z.coerce.number().int().positive().optional()
+  parentId: z.coerce.number().int().positive().nullable().optional()
 });
 
 export const folderIdSchema = z.strictObject({
