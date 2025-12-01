@@ -39,7 +39,7 @@ export const moveFileSchema = z.strictObject({
 });
 
 export const renameFileSchema = z.strictObject({
-  filename: z.string().min(1, "Filename cannot be empty").max(255),
+  newFilename: z.string().min(1, "Filename cannot be empty").max(255),
 });
 
 export type FileUploadInput = z.infer<typeof fileUploadSchema>;

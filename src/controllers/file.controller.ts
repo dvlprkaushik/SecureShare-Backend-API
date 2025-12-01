@@ -197,11 +197,11 @@ export const renameFile = async (
 ) => {
   try {
     const { fileId } = req.validated?.params as FileIdInput;
-    const { filename } = req.validated?.body as RenameFileInput;
+    const { newFilename } = req.validated?.body as RenameFileInput;
 
     const updated = await file_service.renameFileById(
       fileId,
-      filename,
+      newFilename,
       req.userId
     );
 
