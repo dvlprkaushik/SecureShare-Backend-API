@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config({ quiet: true });
 
 export const serverConfig = {
-  NODE_ENV: process.env.NODE_ENV || "development",
+  NODE_ENV: "development",
   PORT: Number(process.env.PORT) || 5000,
 
   // DB
